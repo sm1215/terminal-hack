@@ -39,21 +39,21 @@ var terminal = {
         }
 
         html = '<div class="row heading">';
-            html += '<div class="word">WORD</div>';
-            html += '<div class="hits">HITS</div>';
-            html += '<div class="matched">NO. MATCHED</div>';
-            html += '<div class="filter r">FILTER RESULTS</div>';
+            html += '<div class="cell">WORD</div>';
+            html += '<div class="cell">HITS</div>';
+            html += '<div class="cell">NO. MATCHED</div>';
+            html += '<div class="cell r">FILTER RESULTS</div>';
         html += '</div>';
         for (var i = 0; i < terminal.sorted.length; i++) {
             html += '<div id="entry-'+i+'" class="row">';
-                html += '<div class="word">'+terminal.sorted[i]['base'].toUpperCase()+'</div>';
-                html += '<div class="hits">'+terminal.sorted[i]['hits'].length+'</div>';
-                html += '<div class="matched"><input type="text" name="matched"></div>';
-                html += '<div class="filter r"><div class="button">FILTER</div></div>';
+                html += '<div class="cell word">'+terminal.sorted[i]['base'].toUpperCase()+'</div>';
+                html += '<div class="cell hits">'+terminal.sorted[i]['hits'].length+'</div>';
+                html += '<div class="cell matched"><input type="text" name="matched"></div>';
+                html += '<div class="cell filter r"><div class="button">FILTER</div></div>';
             html += '</div>';
         };
 
-        $('#results').html(html).css('display', 'block');
+        $('#results').html(html).css('display', 'table');
     },
 
     findMaxHits:function(highest, current){
@@ -61,13 +61,9 @@ var terminal = {
         common = terminal.common;
 
         if(current < common.length){
-            // console.log('COMPARING: ', 'KEY[',highest,']', common[highest]['hits'].length, ' TO KEY[',current,']', common[current]['hits'].length);
             if(common[highest]['hits'].length < common[current]['hits'].length){
                 highest = current;
             }
-
-            // console.log(highest);
-
             return this.findMaxHits(highest, current + 1);
         } else {
             return highest;
@@ -78,27 +74,48 @@ var terminal = {
     filterMatched:function(entryIndex, matched){
         entry = terminal.sorted[entryIndex];
         hits = entry['hits'];
-        compiled = [];
+        compiled = {};
+        result = [];
 
-
-        //want to compile new array with matching words and number of times they matched
-        //like: compiled['word']['matches']
-        //would read: 'SPIES', '3'
-        current = hits[0]['matched'];
-        count = 1;
-        compiled.push(current);
         for (var i = 0; i < hits.length; i++) {
-            next = hits[i]['matched'];
+            current = hits[i]['matched'];
 
+            if(typeof compiled[current] != 'undefined'){
+                compiled[current] += 1;
+            } else {
+                compiled[current] = 1;
+            }
         };
 
+        for ( match in compiled ){
+            if(compiled[match] == matched){
+                result.push(match);
+            }
+        }
 
-        console.log(entry);
+        for (var i = 0; i < result.length; i++) {
+            var found;
+            findthis = result[i];
+
+            for (var j = 0; j < terminal.sorted.length; j++) {
+                if(terminal.sorted[j].base == findthis){
+                    $('#entry-'+j).css({'background': 'mediumspringgreen', 'color': '#052013'});
+                    break;
+                }
+
+            };
+        };
     }
+
+
 }
 $(document).ready(function(){
     terminal.findCommon(terminal.sample);
     $('#results').find('.row#entry-0').find('input[name="matched"]').val(2);
+})
+.on('click', '#reset', function(e){
+    $('#entry').html('');
+    $('#results').html('').css('display', 'none');
 })
 .on('click', '#hack', function(e){
     data = $('#entry').val().split('\n');
