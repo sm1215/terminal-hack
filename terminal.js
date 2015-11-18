@@ -2,6 +2,7 @@ var terminal = {
     sample: [ 'spies', 'joins', 'tires', 'trick', 'tried', 'skies', 'teams', 'third', 'fries', 'price', 'tries', 'trite', 'thank', 'thick', 'tribe', 'texas' ],
     common: [],
     sorted: [],
+    matches: [],
 
     findCommon:function(data){
 
@@ -12,7 +13,7 @@ var terminal = {
         for (var i = 0; i < length; i++) {
             
             var a = data[i];
-            result.push( { 'base': a, 'hits': [] } );
+            result.push( { 'base': a, 'hits': [], 'matches': {} } );
             for (var j = 0; j < length; j++) {
 
                 var b = data[j];
@@ -24,6 +25,12 @@ var terminal = {
 
                         if(aSplit[k] == bSplit[k]){
                             result[i]['hits'].push( { 'matched': b, 'pos':k, 'letter':aSplit[k] } );
+                            
+                            if(typeof result[i]['matches'][b] != 'undefined'){
+                                result[i]['matches'][b] += 1;
+                            } else {
+                                result[i]['matches'][b] = 1;
+                            }
                         }
                     };
                 } 
@@ -38,6 +45,11 @@ var terminal = {
             terminal.common.splice(highest, 1);
         }
 
+        terminal.drawSorted();
+
+    },
+
+    drawSorted:function(){
         html = '<div class="row heading">';
             html += '<div class="cell">WORD</div>';
             html += '<div class="cell">HITS</div>';
@@ -71,47 +83,46 @@ var terminal = {
 
     },
 
-    filterMatched:function(entryIndex, matched){
-        entry = terminal.sorted[entryIndex];
-        hits = entry['hits'];
-        compiled = {};
+    filterMatched:function(entryIndex, noMatched){
+        sorted = terminal.sorted;
+        matches = sorted[entryIndex]['matches'];
         result = [];
+        found = [];
+        newSorted = [],
 
-        for (var i = 0; i < hits.length; i++) {
-            current = hits[i]['matched'];
+        $('.row').removeClass('on');
 
-            if(typeof compiled[current] != 'undefined'){
-                compiled[current] += 1;
-            } else {
-                compiled[current] = 1;
-            }
-        };
-
-        for ( match in compiled ){
-            if(compiled[match] == matched){
+        for (match in matches) {
+            if(matches[match] == noMatched){
                 result.push(match);
             }
-        }
+        };
+
+        console.log('result',result,'sorted',sorted)
 
         for (var i = 0; i < result.length; i++) {
-            var found;
-            findthis = result[i];
-
-            for (var j = 0; j < terminal.sorted.length; j++) {
-                if(terminal.sorted[j].base == findthis){
-                    $('#entry-'+j).css({'background': 'mediumspringgreen', 'color': '#052013'});
-                    break;
+            for (var j = 0; j < sorted.length; j++) {   
+                if(result[i] == sorted[j]['base']){
+                    found.push(j);
+                    $('#entry-'+j).addClass('on');
                 }
-
             };
         };
+
+        //create new sorted array to get rid of non-matches
+        for (var i = 0; i < found.length; i++) {
+            newSorted.push(sorted[found[i]]);
+        };
+
+        terminal.sorted = newSorted;
+        terminal.drawSorted();
     }
 
 
 }
 $(document).ready(function(){
-    terminal.findCommon(terminal.sample);
-    $('#results').find('.row#entry-0').find('input[name="matched"]').val(2);
+    // terminal.findCommon(terminal.sample);
+    // $('#results').find('.row#entry-0').find('input[name="matched"]').val(2);
 })
 .on('click', '#reset', function(e){
     $('#entry').html('');
