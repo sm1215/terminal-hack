@@ -125,7 +125,7 @@ $(document).ready(function(){
     // $('#results').find('.row#entry-0').find('input[name="matched"]').val(2);
 })
 .on('click', '#reset', function(e){
-    $('#entry').html('');
+    $('#entry').val('');
     $('#results').html('').css('display', 'none');
 })
 .on('click', '#hack', function(e){
