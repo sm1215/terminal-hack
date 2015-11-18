@@ -127,10 +127,15 @@ $(document).ready(function(){
 .on('click', '#reset', function(e){
     $('#entry').val('');
     $('#results').html('').css('display', 'none');
+    terminal.common = [];
+    terminal.sorted = [];
+    terminal.matches = [];
 })
 .on('click', '#hack', function(e){
-    data = $('#entry').val().split('\n');
-    terminal.findCommon(data);
+    if($('#entry').val().length > 0){
+        data = $('#entry').val().split('\n');
+        terminal.findCommon(data);
+    }
 })
 .on('click', '.filter', function(e){
     entryIndex = $(this).parents('.row').attr('id').split('-')[1];
