@@ -5,37 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Terminal</title>
     <style>
-        body{ font-family: 'lucida console', monaco, monospace; color:black/*mediumspringgreen*/; background:white/*#052013*/; }
-        ::selection{ background:white/*#1f3a2b*/; color:white; }
-        ::-moz-selection{ background:white/*#1f3a2b*/; color:white; }
+        body{ font-family: 'lucida console', monaco, monospace; color:mediumspringgreen; background:#052013; }
+        ::selection{ background:#1f3a2b; }
+        ::-moz-selection{ background:#1f3a2b; }
         #monitor{ width:600px; height:450px; margin:20px auto; }
-        #entry{ display:inline-block; width:600px; height:400px; border:1px solid black/*mediumspringgreen*/; }
-        .button{ display:block; width:50px; float:right; margin:10px 0; padding:5px 10px; line-height:10px; font-size:16px; border:1px solid black/*mediumspringgreen*/; cursor:pointer; text-align:center; }
-        input, textarea{ border:1px solid black/*mediumspringgreen*/; border-radius:0px; colorblack:/*mediumspringgreen*/; background:white/*#052013*/; outline:none; resize:none; }
-        input:focus, textarea:focus{ background:black/*#1f3a2b*/; color:white; }
+        #entry{ display:inline-block; width:600px; height:400px; border:1px solid mediumspringgreen; }
+        .button{ display:block; float:right; margin:10px 0; padding:5px 10px; line-height:10px; font-size:14px; border:1px solid mediumspringgreen; cursor:pointer; text-align:center; }
+        input, textarea{ border:1px solid mediumspringgreen; border-radius:0px; color:mediumspringgreen; background:#052013; outline:none; resize:none; text-transform:uppercase; }
+        input:focus, textarea:focus{ color:#1f3a2b; background:mediumspringgreen; }
+        textarea{ font-size: 16px; letter-spacing:1px; }
+        textarea:focus{ font-weight:bold; }
         #reset{ float:left; }
-        .button:hover{ background:black/*mediumspringgreen*/; color:white/*#052013*/; }
-        #results{ display:none; width:600px; margin:10px auto; padding:10px 0; border:1px solid black/*mediumspringgreen*/; }
+        .button:hover{ background:mediumspringgreen; color:#052013; }
+        #results{ display:none; width:600px; margin:10px auto; padding:10px 0; border:1px solid mediumspringgreen; }
         #results .row{ display:table-row; }
         #results .cell{ display:table-cell; }
-        #results .row.heading div{ border-bottom:1px solid black/*mediumspringgreen*/; padding:0 0 10px 0; margin:0 0 10px 0; height:30px; }
-        #results .row.heading div.r{ border-bottom:1px solid black/*mediumspringgreen*/; }
+        #results .row.heading div{ border-bottom:1px solid mediumspringgreen; padding:0 0 10px 0; margin:0 0 10px 0; height:30px; }
+        #results .row.heading div.r{ border-bottom:1px solid mediumspringgreen; }
         #results .row div{ line-height:35px; height:35px; vertical-align: middle; }
-        #results .row div{ width:150px; border-right:1px solid black/*mediumspringgreen*/; box-sizing:border-box; text-align:center; }
+        #results .row div{ width:150px; border-right:1px solid mediumspringgreen; box-sizing:border-box; text-align:center; }
         #results .row div.r{ border:none; }
         #results .row div input{ width:90%; margin:0 auto; text-align:center; line-height:22px; height:22px; }
         #results .row div .button{ width:90%; float:none; margin:0 auto; height:auto; line-height:10px; }
-
-        #results .row.on{ background:black; color:white; }
-        #results .row.on .button{ border:1px solid white; }
-        #results .row.on .button:hover{ background:white; color:black; border:1px solid black; }
+        #results .row.on{ background:mediumspringgreen; color:#052013; }
+        #results .row.on .button{ border:1px solid #052013; }
+        #results .row.on .button:hover{ background:#052013; color:mediumspringgreen; border:1px solid mediumspringgreen; }
     </style>
 </head>
 <body>
     <div id="monitor">
-        <textarea name="entry" id="entry" cols="50" rows="20"></textarea>
-        <div id="reset" class="button">RESET</div>
-        <div id="hack" class="button">HACK</div>
+        <textarea name="entry" id="entry" cols="50" rows="20" tabindex="1"></textarea>
+        <input id="reset" class="button" type="button" value="RESET" tabindex="99" />
+        <input id="hack" class="button" type="button" value="HACK" tabindex="2" />
     </div>
     <div id="results"></div>
 </body>

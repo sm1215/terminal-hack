@@ -39,33 +39,21 @@ var terminal = {
 
         terminal.common = result;
 
-        while(terminal.common.length > 0){
-            highest = terminal.findMaxHits(0, 1);
-            terminal.sorted.push(common[highest]);
-            terminal.common.splice(highest, 1);
-        }
+        terminal.sortCommon();
 
         terminal.drawSorted();
 
     },
 
-    drawSorted:function(){
-        html = '<div class="row heading">';
-            html += '<div class="cell">WORD</div>';
-            html += '<div class="cell">HITS</div>';
-            html += '<div class="cell">NO. MATCHED</div>';
-            html += '<div class="cell r">FILTER RESULTS</div>';
-        html += '</div>';
-        for (var i = 0; i < terminal.sorted.length; i++) {
-            html += '<div id="entry-'+i+'" class="row">';
-                html += '<div class="cell word">'+terminal.sorted[i]['base'].toUpperCase()+'</div>';
-                html += '<div class="cell hits">'+terminal.sorted[i]['hits'].length+'</div>';
-                html += '<div class="cell matched"><input type="text" name="matched"></div>';
-                html += '<div class="cell filter r"><div class="button">FILTER</div></div>';
-            html += '</div>';
-        };
-
-        $('#results').html(html).css('display', 'table');
+    sortCommon:function(){
+        terminal.sorted = [];
+        common = terminal.common;
+        while(common.length > 0){
+            highest = terminal.findMaxHits(0, 1);
+            terminal.sorted.push(common[highest]);
+            common.splice(highest, 1);
+        }
+        terminal.common = common;
     },
 
     findMaxHits:function(highest, current){
@@ -83,12 +71,31 @@ var terminal = {
 
     },
 
+    drawSorted:function(){
+        html = '<div class="row heading">';
+            html += '<div class="cell">WORD</div>';
+            html += '<div class="cell">HITS</div>';
+            html += '<div class="cell">NO. MATCHED</div>';
+            html += '<div class="cell r">FILTER RESULTS</div>';
+        html += '</div>';
+        for (var i = 0; i < terminal.sorted.length; i++) {
+            html += '<div id="entry-'+i+'" class="row">';
+                html += '<div class="cell word">'+terminal.sorted[i]['base'].toUpperCase()+'</div>';
+                html += '<div class="cell hits">'+terminal.sorted[i]['hits'].length+'</div>';
+                html += '<div class="cell matched"><input type="text" name="matched"></div>';
+                html += '<div class="cell filter r"><input type="button" class="button" value="FILTER"></div>';
+            html += '</div>';
+        };
+
+        $('#results').html(html).css('display', 'table');
+    },
+
     filterMatched:function(entryIndex, noMatched){
         sorted = terminal.sorted;
         matches = sorted[entryIndex]['matches'];
         result = [];
         found = [];
-        newSorted = [],
+        newCommon = [],
 
         $('.row').removeClass('on');
 
@@ -97,8 +104,6 @@ var terminal = {
                 result.push(match);
             }
         };
-
-        console.log('result',result,'sorted',sorted)
 
         for (var i = 0; i < result.length; i++) {
             for (var j = 0; j < sorted.length; j++) {   
@@ -109,20 +114,22 @@ var terminal = {
             };
         };
 
-        //create new sorted array to get rid of non-matches
+        //create new common array to get rid of non-matches
         for (var i = 0; i < found.length; i++) {
-            newSorted.push(sorted[found[i]]);
+            newCommon.push(sorted[found[i]]);
         };
 
-        terminal.sorted = newSorted;
+        terminal.common = newCommon;
+
+        terminal.sortCommon();
         terminal.drawSorted();
     }
 
 
 }
 $(document).ready(function(){
-    // terminal.findCommon(terminal.sample);
-    // $('#results').find('.row#entry-0').find('input[name="matched"]').val(2);
+    terminal.findCommon(terminal.sample);
+    $('#results').find('.row#entry-0').find('input[name="matched"]').val(2);
 })
 .on('click', '#reset', function(e){
     $('#entry').val('');
@@ -141,5 +148,8 @@ $(document).ready(function(){
     entryIndex = $(this).parents('.row').attr('id').split('-')[1];
     matched = $(this).parents('.row').children('.matched').children('input[name="matched"]').val();
     terminal.filterMatched(entryIndex, matched);
+})
+.on('change', 'input[name="matched"]', function(){
+    $(this).parents('.row').children('.filter').children('.button').focus();
 })
 ;
