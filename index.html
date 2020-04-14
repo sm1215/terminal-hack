@@ -16,6 +16,8 @@
         textarea{ font-size: 16px; letter-spacing:1px; }
         textarea:focus{ font-weight:bold; }
         #reset{ float:left; }
+        #instructions{ max-width:600px; margin:0 auto; }
+        #instructions li{ margin:0 0 5px 0; }
         .button:hover{ background:mediumspringgreen; color:#052013; }
         #results{ display:none; width:600px; margin:10px auto; padding:10px 0; border:1px solid mediumspringgreen; }
         #results .row{ display:table-row; }
@@ -39,6 +41,17 @@
         <input id="hack" class="button" type="button" value="HACK" tabindex="2" />
     </div>
     <div id="results"></div>
+    <div id="instructions">
+        <p>How to use</p>
+        <ol>
+            <li>Enter possible passwords from the Fallout terminal above. One word per line. Click Hack.</li>
+            <li>Each potential password will be compared to the others to find similarities.</li>
+            <li>Generally, words with the most "Hits" are more likely to be the real password.</li>
+            <li>Try using one of the top results as the password in-game.</li>
+            <li>Record the No. of letters Matched that Fallout gives you. Hit filter and repeat steps 2 - 4.</li>
+            <li>Results aren't guaranteed but it can get close!</li>
+        </ol>
+    </div>
 </body>
 <script type="text/javascript" src="jquery-1.11.3.min.js"></script>
 <script type="text/javascript" src="terminal.js"></script>

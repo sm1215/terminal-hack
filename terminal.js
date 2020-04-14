@@ -128,8 +128,8 @@ var terminal = {
 
 }
 $(document).ready(function(){
-    terminal.findCommon(terminal.sample);
-    $('#results').find('.row#entry-0').find('input[name="matched"]').val(2);
+    // terminal.findCommon(terminal.sample);
+    // $('#results').find('.row#entry-0').find('input[name="matched"]').val(2);
 })
 .on('click', '#reset', function(e){
     $('#entry').val('');
