@@ -1,155 +1,237 @@
-var terminal = {
-    sample: [ 'spies', 'joins', 'tires', 'trick', 'tried', 'skies', 'teams', 'third', 'fries', 'price', 'tries', 'trite', 'thank', 'thick', 'tribe', 'texas' ],
-    common: [],
-    sorted: [],
-    matches: [],
+const terminal = {
+    debug: false,
+    sample: ['caves', 'vents', 'pages', 'cried', 'actor', 'mines', 'dried', 'races', 'paper', 'vault', 'green', 'noted', 'helps', 'creed', 'plate', 'types', 'games', 'holes', 'pouch', 'plush'],
+    matrix: {},
 
-    findCommon:function(data){
+    ui: {
+        entry: document.querySelector('#entry'),
+        reset: document.querySelector('#reset'),
+        run: document.querySelector('#run'),
+        likeness: document.querySelectorAll('.likeness'),
+        results: document.querySelector('#results'),
+    },
 
-        var result = [],
-            hits,
-            length = data.length;
-        
-        for (var i = 0; i < length; i++) {
-            
-            var a = data[i];
-            result.push( { 'base': a, 'hits': [], 'matches': {} } );
-            for (var j = 0; j < length; j++) {
+    runDebug: function() {
+        this.ui.entry.value = terminal.sample.join('\n');
+        const runEvent = new Event('click');
+        this.ui.run.dispatchEvent(runEvent);
 
-                var b = data[j];
-                if(a != b){
+        console.log('terminal', terminal);
+        console.log('this.matrix', this.matrix);
 
-                    aSplit = a.split('');
-                    bSplit = b.split('');
-                    for (var k = 0; k < aSplit.length; k++) {
+        this.ui.likeness[0].value = 1;
+        const likenessEvent = new Event('input');
+        this.ui.likeness[0].dispatchEvent(likenessEvent);
+    },
 
-                        if(aSplit[k] == bSplit[k]){
-                            result[i]['hits'].push( { 'matched': b, 'pos':k, 'letter':aSplit[k] } );
-                            
-                            if(typeof result[i]['matches'][b] != 'undefined'){
-                                result[i]['matches'][b] += 1;
-                            } else {
-                                result[i]['matches'][b] = 1;
-                            }
-                        }
+    // used for the static portions of the UI that don't get rebuilt
+    addMainEvents: function () {
+        this.ui.reset.addEventListener('click', (event) => {
+            this.ui.entry.value = '';
+            this.ui.results.innerHTML = '';
+            this.ui.results.classList.remove('on');
+            this.removeResultsEvents();
+        });
+
+        this.ui.run.addEventListener('click', (event) => {
+            if (this.ui.entry.value.length <= 0) {
+                return;
+            }
+
+            this.findSimilarities();
+        });
+    },
+
+    // used for dynamic portions of the UI, the results table
+    updateUi: function() {
+        this.removeResultsEvents();
+        this.showResults();
+        this.ui.likeness = document.querySelectorAll('.likeness');
+        this.addResultsEvents();
+    },
+
+    // bound to terminal context
+    likenessEventHandler: function (event) {
+        const likeness = parseInt(event.target.value, 10) || 0;
+
+        // only allow numeric values
+        // don't display 0's
+        if (!likeness) {
+            event.target.value = '';
+        }
+        const targetWordIndex = parseInt(event.target.id, 10);
+        const [entry] = terminal.matrix.filter(({wordIndex}) => wordIndex === targetWordIndex);
+        entry.likeness = likeness;
+
+        this.filterMatrixByLikeness();
+        this.updateUi();
+    },
+
+    // The contents of the results table are dynamic and events need to be handled separately
+    addResultsEvents() {
+        this.ui.likeness.forEach((element) => element.addEventListener('input', this.likenessEventHandler.bind(this)));
+    },
+
+    removeResultsEvents() {
+        this.ui.likeness.forEach((element) => element.removeEventListener('input', this.likenessEventHandler.bind(this)));
+    },
+
+    initMatrix: function () {
+        const data = this.ui.entry.value.split('\n').filter((value) => value);
+        return data.map((word, wordIndex) => {
+            return {
+                wordIndex,
+                word,
+                display: true,
+                letters: word.split('').map((letter, letterIndex) => {
+                    return {
+                        letterIndex,
+                        letter,
+                        matches: 0
                     };
-                } 
+                }),
+                totalMatches: function() { 
+                    return this.letters
+                        .map(({matches}) => matches)
+                        .reduce((previous, current) => { return previous += current; }, 0);
+                },
+                likeness: 0,
+                similarities: []
             };
-        };
-
-        terminal.common = result;
-
-        terminal.sortCommon();
-
-        terminal.drawSorted();
-
+        });
     },
 
-    sortCommon:function(){
-        terminal.sorted = [];
-        common = terminal.common;
-        while(common.length > 0){
-            highest = terminal.findMaxHits(0, 1);
-            terminal.sorted.push(common[highest]);
-            common.splice(highest, 1);
-        }
-        terminal.common = common;
+    // returns a new matrix sorted by highest totalMatches in descending order
+    sortData: function (data) {
+        return [...data].sort((a, b) => b.totalMatches() - a.totalMatches());
     },
 
-    findMaxHits:function(highest, current){
+    // returns a new matrix with entries that have an exact matching likeness
+    filterMatrixByLikeness: function() {
+        const data = [...this.matrix];
 
-        common = terminal.common;
+        const highestLikeness = Math.max(...data.map(({likeness}) => likeness))
 
-        if(current < common.length){
-            if(common[highest]['hits'].length < common[current]['hits'].length){
-                highest = current;
-            }
-            return this.findMaxHits(highest, current + 1);
-        } else {
-            return highest;
+        const wordsToCompare = data.filter(({likeness}) => likeness === highestLikeness);
+
+        if (wordsToCompare.length < 1) {
+            return data;
         }
 
+        // find other words that have a similar likeness
+        // this won't include the word we are comparing against
+        const [matchingWordIndexes] = wordsToCompare
+            .map(({likeness, similarities}) => similarities
+                .filter(({commonLetters}) => commonLetters.length === likeness)
+                .map(({wordIndex}) => wordIndex)
+        );
+
+        console.log('matchingWordIndexes', matchingWordIndexes);
+
+        const matchingWords = data
+            .filter(({wordIndex}) => 
+                matchingWordIndexes.includes(wordIndex)
+                // don't include words we're already comparing against, it introduces duplicates
+                && !wordsToCompare.map(({wordIndex}) => wordIndex).includes(wordIndex)
+            );
+
+        const combined = [...wordsToCompare, ...matchingWords].map(({wordIndex}) => wordIndex);
+
+        data.forEach((entry) => {
+            entry.display = combined.includes(entry.wordIndex);
+        });
     },
 
-    drawSorted:function(){
-        html = '<div class="row heading">';
-            html += '<div class="cell">WORD</div>';
-            html += '<div class="cell">HITS</div>';
-            html += '<div class="cell">NO. MATCHED</div>';
-            html += '<div class="cell r">FILTER RESULTS</div>';
-        html += '</div>';
-        for (var i = 0; i < terminal.sorted.length; i++) {
-            html += '<div id="entry-'+i+'" class="row">';
-                html += '<div class="cell word">'+terminal.sorted[i]['base'].toUpperCase()+'</div>';
-                html += '<div class="cell hits">'+terminal.sorted[i]['hits'].length+'</div>';
-                html += '<div class="cell matched"><input type="text" name="matched"></div>';
-                html += '<div class="cell filter r"><input type="button" class="button" value="FILTER"></div>';
-            html += '</div>';
-        };
+    // compares the matches of each letter to find how alike one word is to another
+    // also finds general total matches
+    findSimilarities: function(matrix = this.initMatrix()) {
+        for (let row = 0; row < matrix.length; row++) {
+            for (let column = 0; column < matrix[row].letters.length; column++) {
+                const letter = matrix[row].letters[column].letter;
 
-        $('#results').html(html).css('display', 'table');
-    },
+                for (let compareRow = 0; compareRow < matrix.length; compareRow++) {
+                    if (row === compareRow) {
+                        continue;
+                    }
 
-    filterMatched:function(entryIndex, noMatched){
-        sorted = terminal.sorted;
-        matches = sorted[entryIndex]['matches'];
-        result = [];
-        found = [];
-        newCommon = [],
+                    const compareLetter = matrix[compareRow].letters[column].letter;
 
-        $('.row').removeClass('on');
+                    if (letter === compareLetter) {
+                        matrix[row].letters[column].matches++;
 
-        for (match in matches) {
-            if(matches[match] == noMatched){
-                result.push(match);
-            }
-        };
+                        const similarities = matrix[row].similarities;
+                        const compareWordIndex = matrix[compareRow].wordIndex;
+                        const compareWord = matrix[compareRow].word;
+                        const compareLetterObject = matrix[compareRow].letters[column];
 
-        for (var i = 0; i < result.length; i++) {
-            for (var j = 0; j < sorted.length; j++) {   
-                if(result[i] == sorted[j]['base']){
-                    found.push(j);
-                    $('#entry-'+j).addClass('on');
+                        const [exists] = similarities.filter(({wordIndex}) => compareWordIndex === wordIndex);
+                        if (!exists) {
+                            similarities.push({
+                                wordIndex: compareWordIndex,
+                                word: compareWord,
+                                commonLetters: [
+                                    compareLetterObject
+                                ]
+                            });
+                        } else {
+                            exists.commonLetters.push(compareLetterObject);
+                        }
+                    }
                 }
-            };
-        };
+            }
+        }
 
-        //create new common array to get rid of non-matches
-        for (var i = 0; i < found.length; i++) {
-            newCommon.push(sorted[found[i]]);
-        };
+        this.matrix = matrix;
+        this.updateUi();
+    },
 
-        terminal.common = newCommon;
+    showResults: function(data = this.matrix) {
+        const sortedMatrix = this.sortData(data);
+        const html = `
+            <div class="row heading">
+                <div class="cell">WORD</div>
+                <div class="cell">MATCHES</div>
+                <div class="cell r">LIKENESS</div>
+            </div>
+            ${
+                sortedMatrix.map((row) => {
+                    const wordIndex = row.wordIndex;
+                    const word = row.word.toUpperCase();
+                    const totalMatches = row.totalMatches();
+                    const likeness = row.likeness ? row.likeness : '';
+                    const display = row.display ? '' : 'off';
+                    const disabled = display === 'off';
+                    return `
+                        <div class="row ${display}">
+                            <div class="cell word">${word}</div>
+                            <div class="cell matches">${totalMatches}</div>
+                            <div class="cell r">
+                                <input type="text" name="likeness" class="likeness text-input" id="${wordIndex}" value="${likeness}" ${disabled ? 'disabled' : ''}>
+                            </div>
+                        </div>
+                    `;
+                }).join('')
+            }
+        `;
 
-        terminal.sortCommon();
-        terminal.drawSorted();
+        this.ui.results.innerHTML = html;
+        this.ui.results.classList.add('on');
     }
-
-
 }
-$(document).ready(function(){
-    // terminal.findCommon(terminal.sample);
-    // $('#results').find('.row#entry-0').find('input[name="matched"]').val(2);
-})
-.on('click', '#reset', function(e){
-    $('#entry').val('');
-    $('#results').html('').css('display', 'none');
-    terminal.common = [];
-    terminal.sorted = [];
-    terminal.matches = [];
-})
-.on('click', '#hack', function(e){
-    if($('#entry').val().length > 0){
-        data = $('#entry').val().split('\n');
-        terminal.findCommon(data);
+
+const init = function () {
+    terminal.addMainEvents();
+    if (terminal.debug) {
+        terminal.runDebug();
     }
-})
-.on('click', '.filter', function(e){
-    entryIndex = $(this).parents('.row').attr('id').split('-')[1];
-    matched = $(this).parents('.row').children('.matched').children('input[name="matched"]').val();
-    terminal.filterMatched(entryIndex, matched);
-})
-.on('change', 'input[name="matched"]', function(){
-    $(this).parents('.row').children('.filter').children('.button').focus();
-})
-;
+}
+
+function ready(init) {
+    if (document.readyState !== 'loading') {
+        init();
+    } else {
+        document.addEventListener('DOMContentLoaded', init);
+    }
+}
+
+ready(init);

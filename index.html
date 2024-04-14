@@ -13,13 +13,15 @@
         .button{ display:block; float:right; margin:10px 0; padding:5px 10px; line-height:10px; font-size:14px; border:1px solid mediumspringgreen; cursor:pointer; text-align:center; }
         input, textarea{ border:1px solid mediumspringgreen; border-radius:0px; color:mediumspringgreen; background:#052013; outline:none; resize:none; text-transform:uppercase; }
         input:focus, textarea:focus{ color:#1f3a2b; background:mediumspringgreen; }
-        textarea{ font-size: 16px; letter-spacing:1px; }
+        input:focus::selection, textarea:focus::selection{ color:mediumspringgreen; }
+        textarea{ font-size:16px; letter-spacing:1px; }
         textarea:focus{ font-weight:bold; }
         #reset{ float:left; }
-        #instructions{ max-width:600px; margin:0 auto; }
+        #instructions{ max-width:600px; margin:40px auto; }
         #instructions li{ margin:0 0 5px 0; }
         .button:hover{ background:mediumspringgreen; color:#052013; }
         #results{ display:none; width:600px; margin:10px auto; padding:10px 0; border:1px solid mediumspringgreen; }
+        #results.on { display: table; }
         #results .row{ display:table-row; }
         #results .cell{ display:table-cell; }
         #results .row.heading div{ border-bottom:1px solid mediumspringgreen; padding:0 0 10px 0; margin:0 0 10px 0; height:30px; }
@@ -27,32 +29,42 @@
         #results .row div{ line-height:35px; height:35px; vertical-align: middle; }
         #results .row div{ width:150px; border-right:1px solid mediumspringgreen; box-sizing:border-box; text-align:center; }
         #results .row div.r{ border:none; }
-        #results .row div input{ width:90%; margin:0 auto; text-align:center; line-height:22px; height:22px; }
+        #results .row div .text-input{ width:90%; margin:0 auto; text-align:center; line-height:22px; height:22px; }
         #results .row div .button{ width:90%; float:none; margin:0 auto; height:auto; line-height:10px; }
         #results .row.on{ background:mediumspringgreen; color:#052013; }
         #results .row.on .button{ border:1px solid #052013; }
         #results .row.on .button:hover{ background:#052013; color:mediumspringgreen; border:1px solid mediumspringgreen; }
+        #results .row.off {text-decoration: line-through; background:#020f09; color: rgb(0, 126, 78); }
+        #results .row.off .text-input { border:1px solid #052013; }
+        ol { border-top: 1px solid mediumspringgreen; border-bottom: 1px solid mediumspringgreen; padding-top: 10px; padding-bottom:10px; }
+        li { padding-bottom: 5px; }
+        p { font-size: 14px; }
     </style>
 </head>
 <body>
     <div id="monitor">
         <textarea name="entry" id="entry" cols="50" rows="20" tabindex="1"></textarea>
         <input id="reset" class="button" type="button" value="RESET" tabindex="99" />
-        <input id="hack" class="button" type="button" value="HACK" tabindex="2" />
+        <input id="run" class="button" type="button" value="RUN" tabindex="2" />
     </div>
     <div id="results"></div>
     <div id="instructions">
         <p>How to use</p>
         <ol>
-            <li>Enter possible passwords from the Fallout terminal above. One word per line. Click Hack.</li>
-            <li>Each potential password will be compared to the others to find similarities.</li>
-            <li>Generally, words with the most "Hits" are more likely to be the real password.</li>
-            <li>Try using one of the top results as the password in-game.</li>
-            <li>Record the No. of letters Matched that Fallout gives you. Hit filter and repeat steps 2 - 4.</li>
-            <li>Results aren't guaranteed but it can get close!</li>
+            <li>Enter passwords from the Fallout terminal above. One word per line. Click Run.</li>
+            <li>Each password will be compared to find similarities.</li>
+            <li>Words with the highest "Matches" are good to use as a guess because they can eliminate the most combinations.</li>
+            <li><p>Repeat:</p>
+                <ul>
+                    <li>Try using one of the top results as the password in-game.</li>
+                    <li>Type the "likeness" that Fallout gives you.</li>
+                </ul>
+            </li>
         </ol>
+        <p>Results aren't guaranteed but it can help as a guessing guide!</p>
     </div>
 </body>
 <script type="text/javascript" src="jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="sample.js"></script>
 <script type="text/javascript" src="terminal.js"></script>
 </html>
