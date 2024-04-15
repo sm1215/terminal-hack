@@ -9,11 +9,13 @@
         ::selection{ background:#1f3a2b; }
         ::-moz-selection{ background:#1f3a2b; }
         #monitor{ width:600px; height:450px; margin:20px auto; }
-        #entry{ display:inline-block; width:600px; height:400px; border:1px solid mediumspringgreen; }
+        #entry{ display:inline-block; width:600px; height:400px; background:1px solid mediumspringgreen; }
+        #error{ display: none; width: 600px; margin: 20px auto; padding: 5px 10px; box-sizing: border-box; background: mediumspringgreen; color:#052013; }
+        #error.on { display: block; }
         .button{ display:block; float:right; margin:10px 0; padding:5px 10px; line-height:10px; font-size:14px; border:1px solid mediumspringgreen; cursor:pointer; text-align:center; }
         input, textarea{ border:1px solid mediumspringgreen; border-radius:0px; color:mediumspringgreen; background:#052013; outline:none; resize:none; text-transform:uppercase; }
         input:focus, textarea:focus{ color:#1f3a2b; background:mediumspringgreen; }
-        input:focus::selection, textarea:focus::selection{ color:mediumspringgreen; }
+        input:focus::selection, textarea:focus::selection, p::selection { color:mediumspringgreen; }
         textarea{ font-size:16px; letter-spacing:1px; }
         textarea:focus{ font-weight:bold; }
         #reset{ float:left; }
@@ -46,6 +48,9 @@
         <textarea name="entry" id="entry" cols="50" rows="20" tabindex="1"></textarea>
         <input id="reset" class="button" type="button" value="RESET" tabindex="99" />
         <input id="run" class="button" type="button" value="RUN" tabindex="2" />
+    </div>
+    <div id="error">
+        <p>Error: All entered words must be same length</p>
     </div>
     <div id="results"></div>
     <div id="instructions">

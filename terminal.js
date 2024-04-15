@@ -1,3 +1,16 @@
+// TODO:
+
+// account for when subsequent guesses have lower likeness
+
+// account for when a user enters 0, eliminate all words that share any likeness with that word
+// SNARE should eliminate STATE, SHAVE, SENSE, SIEGE, etc
+
+// Use more than just the highest likeness
+// DOORS & LEARN could each have a likeness of 1 but both share a different 
+// letter in common with the password
+
+// Give a checkbox to remove a dud, and not count the likeness it has
+
 const terminal = {
     debug: false,
     sample: ['caves', 'vents', 'pages', 'cried', 'actor', 'mines', 'dried', 'races', 'paper', 'vault', 'green', 'noted', 'helps', 'creed', 'plate', 'types', 'games', 'holes', 'pouch', 'plush'],
@@ -9,6 +22,7 @@ const terminal = {
         run: document.querySelector('#run'),
         likeness: document.querySelectorAll('.likeness'),
         results: document.querySelector('#results'),
+        error: document.querySelector('#error')
     },
 
     runDebug: function() {
@@ -19,26 +33,28 @@ const terminal = {
         console.log('terminal', terminal);
         console.log('this.matrix', this.matrix);
 
-        this.ui.likeness[0].value = 1;
-        const likenessEvent = new Event('input');
-        this.ui.likeness[0].dispatchEvent(likenessEvent);
+        // this.ui.likeness[0].value = 1;
+        // const likenessEvent = new Event('input');
+        // this.ui.likeness[0].dispatchEvent(likenessEvent);
     },
 
     // used for the static portions of the UI that don't get rebuilt
     addMainEvents: function () {
-        this.ui.reset.addEventListener('click', (event) => {
+        this.ui.reset.addEventListener('click', () => {
             this.ui.entry.value = '';
             this.ui.results.innerHTML = '';
             this.ui.results.classList.remove('on');
             this.removeResultsEvents();
         });
 
-        this.ui.run.addEventListener('click', (event) => {
+        this.ui.run.addEventListener('click', () => {
             if (this.ui.entry.value.length <= 0) {
                 return;
             }
 
-            this.findSimilarities();
+            if (this.validateInput()) {
+                this.findSimilarities();
+            }
         });
     },
 
@@ -79,6 +95,21 @@ const terminal = {
         this.ui.likeness.forEach((element) => element.removeEventListener('input', this.likenessEventHandler.bind(this)));
     },
 
+    validateInput: function() {
+        const input = this.ui.entry.value
+            .split('\n')
+            .filter((value) => value);
+
+        const allWordsSameLength = input.every((value) => value.length === input[0].length);
+        
+        if (!allWordsSameLength) {
+            this.ui.error.classList.add('on');
+        } else {
+            this.ui.error.classList.remove('on');
+        }
+        return allWordsSameLength;
+    },
+
     initMatrix: function () {
         const data = this.ui.entry.value.split('\n').filter((value) => value);
         return data.map((word, wordIndex) => {
@@ -113,9 +144,7 @@ const terminal = {
     // returns a new matrix with entries that have an exact matching likeness
     filterMatrixByLikeness: function() {
         const data = [...this.matrix];
-
         const highestLikeness = Math.max(...data.map(({likeness}) => likeness))
-
         const wordsToCompare = data.filter(({likeness}) => likeness === highestLikeness);
 
         if (wordsToCompare.length < 1) {
