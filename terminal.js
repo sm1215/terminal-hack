@@ -52,16 +52,19 @@ const terminal = {
 
     // bound to terminal context
     likenessEventHandler: function (event) {
-        const likeness = parseInt(event.target.value, 10) || 0;
+        let likeness = parseInt(event.target.value, 10);
+        const userSuppliedZero = likeness === 0;
 
         // only allow numeric values
-        // don't display 0's
-        if (!likeness) {
+        if (isNaN(likeness)) {
             event.target.value = '';
+            likeness = 0;
         }
+
         const targetWordIndex = parseInt(event.target.id, 10);
         const [entry] = terminal.matrix.filter(({wordIndex}) => wordIndex === targetWordIndex);
         entry.likeness = likeness;
+        entry.userSuppliedZero = userSuppliedZero;
 
         this.filterMatrixByLikeness();
         this.updateUi();
@@ -96,6 +99,7 @@ const terminal = {
                         .reduce((previous, current) => { return previous += current; }, 0);
                 },
                 likeness: 0,
+                userSuppliedZero: false,
                 similarities: []
             };
         });
@@ -126,13 +130,12 @@ const terminal = {
                 .map(({wordIndex}) => wordIndex)
         );
 
-        console.log('matchingWordIndexes', matchingWordIndexes);
-
         const matchingWords = data
-            .filter(({wordIndex}) => 
+            .filter(({wordIndex, userSuppliedZero}) => 
                 matchingWordIndexes.includes(wordIndex)
                 // don't include words we're already comparing against, it introduces duplicates
                 && !wordsToCompare.map(({wordIndex}) => wordIndex).includes(wordIndex)
+                && !userSuppliedZero
             );
 
         const combined = [...wordsToCompare, ...matchingWords].map(({wordIndex}) => wordIndex);
@@ -198,9 +201,9 @@ const terminal = {
                     const wordIndex = row.wordIndex;
                     const word = row.word.toUpperCase();
                     const totalMatches = row.totalMatches();
-                    const likeness = row.likeness ? row.likeness : '';
-                    const display = row.display ? '' : 'off';
-                    const disabled = display === 'off';
+                    const likeness = row.likeness || row.userSuppliedZero ? row.likeness : '';
+                    const display = row.display && !row.userSuppliedZero ? '' : 'off';
+                    const disabled = display === 'off' && !row.userSuppliedZero;
                     return `
                         <div class="row ${display}">
                             <div class="cell word">${word}</div>
