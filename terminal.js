@@ -1,17 +1,35 @@
 // TODO:
-// not sure if this still needs addressed? will figure it out through using
-// account for when subsequent guesses have lower likeness
+// make a debug log where the user input is recorded and the state of the matrix is saved
+// and this can be copied with a button
 
 // Give a checkbox to remove a dud, and not count the likeness it has
+
+// This made a previous answer that was crossed out, not crossed out anymore
+// Answer: gate
+
+// entered 1st RACE: likeness 2
+// entered 2nd ONCE: likeness: 1
+
+// ONCE
+// LOCK
+// SPIN
+// WAYS
+// GATE
+// RACE
+// SUNK
+// WHEN
 const terminal = {
     debug: false,
     // sample: ['caves', 'vents', 'pages', 'cried', 'actor', 'mines', 'dried', 'races', 'paper', 'vault', 'green', 'noted', 'helps', 'creed', 'plate', 'types', 'games', 'holes', 'pouch', 'plush'],
     // sample: ['gates', 'spans', 'hence', 'masks', 'rates', 'boost', 'midst', 'harem', 'sword', 'sells', 'young', 'males', 'knock', 'wares', 'vault', 'black', 'tires', 'prove', 'wrote', 'large'],
+    
+    // scant: 0, cards: 1, empty: 0, re-highlighted
+    // sample: ['saaay', 'cards','empty','viral','shrug','scope','shady','blood','could','scant','weeks','lying','gains','erupt'],
     // sample: [
-    //     'AAAA', // 3
-    //     'AAAB', // answer
-    //     'AAAB', // 4
-    //     'AACC', // 2
+    //     'AABB', // 2
+    //     'CCCB', // 1
+    //     'AAEB', // 3
+    //     'AEEB', // answer
     // ],
     // sample: ['ONCE', 'LOCK', 'SPIN', 'WAYS', 'GATE', 'RACE', 'SUNK', 'WHEN' ],
     // answer: 'gate',
@@ -149,45 +167,44 @@ const terminal = {
         });
     },
 
-    // returns a new matrix with entries that have an exact matching likeness
+    // returns a new matrix with entries that match the same likeness
     filterMatrixBySameLikeness: function() {
         const data = [...this.matrix];
         
-        // this just looks at all likenesses, but can result in a subsequent lower
-        // likeness entry making a previously crossed out word, become active again
-        // const wordsToCompare = data
-        //     .filter(({likeness}) => likeness);
-        //     // .sort((a, b) => a.likeness - b.likeness);
+        const wordsWithLikess = data
+            .filter(({likeness}) => likeness);
         
         // leaving highestLikeness filtering in place for now
-        const highestLikeness = Math.max(...data.map(({likeness}) => likeness));
-        const wordsToCompare = data
-            .filter(({likeness}) => likeness === highestLikeness)
-            .sort((a, b) => a.likeness - b.likeness);
+        // const highestLikeness = Math.max(...data.map(({likeness}) => likeness));
+        // const wordsToCompare = data
+        //     .filter(({likeness}) => likeness === highestLikeness)
+        //     .sort((a, b) => a.likeness - b.likeness);
 
-        if (wordsToCompare.length < 1) {
+        if (wordsWithLikess.length < 1) {
             return data;
         }
 
         // find other words that have a similar likeness
         // this won't include the word we are comparing against
-        const [matchingWordIndexes] = wordsToCompare
-            .map(({likeness, similarities}) => similarities
+        const matchingWordIndexes = wordsWithLikess
+            .flatMap(({likeness, similarities}) => similarities
                 .filter(({commonLetters}) => commonLetters.length === likeness)
                 .map(({wordIndex}) => wordIndex)
         );
-
+    
         const matchingWords = data
             .filter(({wordIndex}) => 
                 matchingWordIndexes.includes(wordIndex)
                 // don't include words we're already comparing against, it introduces duplicates
-                && !wordsToCompare.map(({wordIndex}) => wordIndex).includes(wordIndex)
+                && !wordsWithLikess.map(({wordIndex}) => wordIndex).includes(wordIndex)
             );
 
-        const combined = [...wordsToCompare, ...matchingWords].map(({wordIndex}) => wordIndex);
+        const combined = [...wordsWithLikess, ...matchingWords].map(({wordIndex}) => wordIndex);
 
         data.forEach((entry) => {
-            entry.display = combined.includes(entry.wordIndex);
+            if (combined.includes(entry.wordIndex)) {
+                entry.display = false;
+            }
         });
     },
 
@@ -216,7 +233,7 @@ const terminal = {
         // for all the words marked with 0 likeness,
         // find all the words that share 
         // a similarity with them
-        const [matchingWordIndexes] = wordsWithZeroLikeness.map(
+        const matchingWordIndexes = wordsWithZeroLikeness.flatMap(
             ({similarities}) => similarities.map(({wordIndex}) => wordIndex)
         );
 
@@ -226,8 +243,11 @@ const terminal = {
             ...matchingWordIndexes
         ];
 
+        // this should only ever turn displays off
         data.forEach((entry) => {
-            entry.display = !combined.includes(entry.wordIndex);
+            if (combined.includes(entry.wordIndex)) {
+                entry.display = false;
+            }
         });
     },
 
