@@ -1,6 +1,9 @@
 // TODO:
 // make a debug log where the user input is recorded and the state of the matrix is saved
 // and this can be copied with a button
+
+// add checkbox for duds, just eliminate them
+
 const terminal = {
     debug: false,
     // sample: ['gates', 'spans', 'hence', 'masks', 'rates', 'boost', 'midst', 'harem', 'sword', 'sells', 'young', 'males', 'knock', 'wares', 'vault', 'black', 'tires', 'prove', 'wrote', 'large'],
@@ -88,6 +91,12 @@ const terminal = {
     // bound to terminal context
     // used for highlighting original word in ui.entry
     wordMouseoverEventHandler: function (event) {
+        // prevent window from jumping back up to top of entry textarea if user has scrolled far enough down the page
+        const {bottom: entryBottomPosition} = this.ui.entry.getBoundingClientRect();
+        if (entryBottomPosition < 20) {
+            return;
+        }
+
         const wordIndex = parseInt(event.target.dataset.wordIndex, 10);
         const word = this.matrix[wordIndex];
         const wordLength = word.letters.length + 1;
