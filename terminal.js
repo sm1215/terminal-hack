@@ -2,10 +2,13 @@
 // make a debug log where the user input is recorded and the state of the matrix is saved
 // and this can be copied with a button
 
-// add checkbox for duds, just eliminate them
+// move word hover event to the row number
+// add word hover event to highlight all similarities with other letters in other words
+// need to break word down into individual letters and wrap them in spans
+// use css classes to toggle highlighting
 
 const terminal = {
-    debug: false,
+    // debug: true,
     // sample: ['gates', 'spans', 'hence', 'masks', 'rates', 'boost', 'midst', 'harem', 'sword', 'sells', 'young', 'males', 'knock', 'wares', 'vault', 'black', 'tires', 'prove', 'wrote', 'large'],
     // sample: ['cards','empty','viral','shrug','scope','shady','blood','could','scant','weeks','lying','gains','erupt'],
     matrix: {},
@@ -18,6 +21,7 @@ const terminal = {
         likeness: document.querySelectorAll('.likeness'),
         results: document.querySelector('#results'),
         hide: document.querySelector('#hide'),
+        dud: document.querySelectorAll('.dud.checkbox'),
         resultsTable: document.querySelector('#results-table'),
         error: document.querySelector('#error')
     },
@@ -63,9 +67,15 @@ const terminal = {
     updateUi: function() {
         this.removeResultsEvents();
         this.showResults();
+        this.updateDomReferences();
+        this.addResultsEvents();
+    },
+
+    // these elements are removed / added dynamically
+    updateDomReferences() {
         this.ui.likeness = document.querySelectorAll('.likeness');
         this.ui.word = document.querySelectorAll('.word');
-        this.addResultsEvents();
+        this.ui.dud = document.querySelectorAll('.dud.checkbox');
     },
 
     // bound to terminal context
@@ -113,17 +123,27 @@ const terminal = {
         this.ui.entry.blur();
     },
 
+    dudEventHandler: function (event) {
+        const checked = event.target.checked;
+        const wordIndex = parseInt(event.target.dataset.wordIndex, 10);
+        const word = this.matrix[wordIndex];
+        word.dud = checked;
+        this.updateUi();
+    },
+
     // The contents of the results table are dynamic and events need to be handled separately
     addResultsEvents() {
         this.ui.likeness.forEach((element) => element.addEventListener('input', this.likenessEventHandler.bind(this)));
         this.ui.word.forEach((element) => element.addEventListener('mouseover', this.wordMouseoverEventHandler.bind(this)));
         this.ui.word.forEach((element) => element.addEventListener('mouseout', this.wordMouseoutEventHandler.bind(this)));
+        this.ui.dud.forEach((element) => element.addEventListener('click', this.dudEventHandler.bind(this)));
     },
 
     removeResultsEvents() {
         this.ui.likeness.forEach((element) => element.removeEventListener('input', this.likenessEventHandler.bind(this)));
         this.ui.word.forEach((element) => element.removeEventListener('mouseover', this.wordMouseoverEventHandler.bind(this)));
         this.ui.word.forEach((element) => element.removeEventListener('mouseout', this.wordMouseoutEventHandler.bind(this)));
+        this.ui.dud.forEach((element) => element.removeEventListener('click', this.dudEventHandler.bind(this)));
     },
 
     validateInput: function() {
@@ -314,7 +334,8 @@ const terminal = {
                 <div class="cell number"></div>
                 <div class="cell">WORD</div>
                 <div class="cell">MATCHES</div>
-                <div class="cell r">LIKENESS</div>
+                <div class="cell">LIKENESS</div>
+                <div class="cell dud r">DUD</div>
             </div>
             ${
                 sortedMatrix.map((row, index) => {
@@ -322,7 +343,8 @@ const terminal = {
                     const word = row.word.toUpperCase();
                     const totalMatches = row.totalMatches();
                     const likeness = row.likeness !== null ? row.likeness : '';
-                    const display = row.display ? '' : 'off';
+                    const display = row.display && !row.dud ? '' : 'off';
+                    const dudChecked = row.dud ? 'checked' : '';
 
                     if (hideEliminatedWords && display === 'off') {
                         return;
@@ -333,8 +355,14 @@ const terminal = {
                             <div class="cell number">${index + 1}</div>
                             <div class="cell word" data-word-index="${wordIndex}">${word}</div>
                             <div class="cell matches">${totalMatches}</div>
-                            <div class="cell r">
+                            <div class="cell">
                                 <input type="text" name="likeness" class="likeness text-input" id="${wordIndex}" value="${likeness}">
+                            </div>
+                            <div class="cell dud r">
+                                <label class="dud checkbox-container">
+                                    <input class="dud checkbox" type="checkbox" data-word-index="${wordIndex}" ${dudChecked}>
+                                    <span class="checkmark"></span>
+                                </label>
                             </div>
                         </div>
                     `;
