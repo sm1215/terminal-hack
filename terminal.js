@@ -1,46 +1,21 @@
 // TODO:
 // make a debug log where the user input is recorded and the state of the matrix is saved
 // and this can be copied with a button
-
-// Give a checkbox to remove a dud, and not count the likeness it has
-
-// This made a previous answer that was crossed out, not crossed out anymore
-// Answer: gate
-
-// entered 1st RACE: likeness 2
-// entered 2nd ONCE: likeness: 1
-
-// ONCE
-// LOCK
-// SPIN
-// WAYS
-// GATE
-// RACE
-// SUNK
-// WHEN
 const terminal = {
     debug: false,
-    // sample: ['caves', 'vents', 'pages', 'cried', 'actor', 'mines', 'dried', 'races', 'paper', 'vault', 'green', 'noted', 'helps', 'creed', 'plate', 'types', 'games', 'holes', 'pouch', 'plush'],
     // sample: ['gates', 'spans', 'hence', 'masks', 'rates', 'boost', 'midst', 'harem', 'sword', 'sells', 'young', 'males', 'knock', 'wares', 'vault', 'black', 'tires', 'prove', 'wrote', 'large'],
-    
-    // scant: 0, cards: 1, empty: 0, re-highlighted
-    // sample: ['saaay', 'cards','empty','viral','shrug','scope','shady','blood','could','scant','weeks','lying','gains','erupt'],
-    // sample: [
-    //     'AABB', // 2
-    //     'CCCB', // 1
-    //     'AAEB', // 3
-    //     'AEEB', // answer
-    // ],
-    // sample: ['ONCE', 'LOCK', 'SPIN', 'WAYS', 'GATE', 'RACE', 'SUNK', 'WHEN' ],
-    // answer: 'gate',
+    // sample: ['cards','empty','viral','shrug','scope','shady','blood','could','scant','weeks','lying','gains','erupt'],
     matrix: {},
 
     ui: {
         entry: document.querySelector('#entry'),
         reset: document.querySelector('#reset'),
         run: document.querySelector('#run'),
+        word: document.querySelectorAll('.word'),
         likeness: document.querySelectorAll('.likeness'),
         results: document.querySelector('#results'),
+        hide: document.querySelector('#hide'),
+        resultsTable: document.querySelector('#results-table'),
         error: document.querySelector('#error')
     },
 
@@ -75,6 +50,10 @@ const terminal = {
                 this.findSimilarities();
             }
         });
+
+        this.ui.hide.addEventListener('click', () => {
+            this.updateUi();
+        });
     },
 
     // used for dynamic portions of the UI, the results table
@@ -82,6 +61,7 @@ const terminal = {
         this.removeResultsEvents();
         this.showResults();
         this.ui.likeness = document.querySelectorAll('.likeness');
+        this.ui.word = document.querySelectorAll('.word');
         this.addResultsEvents();
     },
 
@@ -105,13 +85,36 @@ const terminal = {
         this.updateUi();
     },
 
+    // bound to terminal context
+    // used for highlighting original word in ui.entry
+    wordMouseoverEventHandler: function (event) {
+        const wordIndex = parseInt(event.target.dataset.wordIndex, 10);
+        const word = this.matrix[wordIndex];
+        const wordLength = word.letters.length + 1;
+        const range = {
+            start: wordIndex * wordLength,
+            end: wordIndex * wordLength + wordLength
+        };
+
+        this.ui.entry.focus();
+        this.ui.entry.setSelectionRange(range.start, range.end);
+    },
+
+    wordMouseoutEventHandler: function (event) {
+        this.ui.entry.blur();
+    },
+
     // The contents of the results table are dynamic and events need to be handled separately
     addResultsEvents() {
         this.ui.likeness.forEach((element) => element.addEventListener('input', this.likenessEventHandler.bind(this)));
+        this.ui.word.forEach((element) => element.addEventListener('mouseover', this.wordMouseoverEventHandler.bind(this)));
+        this.ui.word.forEach((element) => element.addEventListener('mouseout', this.wordMouseoutEventHandler.bind(this)));
     },
 
     removeResultsEvents() {
         this.ui.likeness.forEach((element) => element.removeEventListener('input', this.likenessEventHandler.bind(this)));
+        this.ui.word.forEach((element) => element.removeEventListener('mouseover', this.wordMouseoverEventHandler.bind(this)));
+        this.ui.word.forEach((element) => element.removeEventListener('mouseout', this.wordMouseoutEventHandler.bind(this)));
     },
 
     validateInput: function() {
@@ -296,6 +299,7 @@ const terminal = {
 
     showResults: function(data = this.matrix) {
         const sortedMatrix = this.sortData(data);
+        const hideEliminatedWords = this.ui.hide.checked;
         const html = `
             <div class="row heading">
                 <div class="cell number"></div>
@@ -311,10 +315,14 @@ const terminal = {
                     const likeness = row.likeness !== null ? row.likeness : '';
                     const display = row.display ? '' : 'off';
 
+                    if (hideEliminatedWords && display === 'off') {
+                        return;
+                    }
+
                     return `
                         <div class="row ${display}">
                             <div class="cell number">${index + 1}</div>
-                            <div class="cell word">${word}</div>
+                            <div class="cell word" data-word-index="${wordIndex}">${word}</div>
                             <div class="cell matches">${totalMatches}</div>
                             <div class="cell r">
                                 <input type="text" name="likeness" class="likeness text-input" id="${wordIndex}" value="${likeness}">
@@ -325,7 +333,7 @@ const terminal = {
             }
         `;
 
-        this.ui.results.innerHTML = html;
+        this.ui.resultsTable.innerHTML = html;
         this.ui.results.classList.add('on');
     }
 }
