@@ -18,7 +18,8 @@
         .text-input:focus { color:#1f3a2b; background:mediumspringgreen; }
         textarea::selection { color:#1f3a2b; background: mediumspringgreen; }
         input:focus::selection { color:mediumspringgreen; background: #1f3a2b; }
-        .word-entry:hover { background: mediumspringgreen; color: #1f3a2b; cursor: pointer; }
+        .number-entry:hover, .word-entry:hover { background: mediumspringgreen; color: #1f3a2b; cursor: pointer; }
+        .letter:hover { background: mediumspringgreen; color: #1f3a2b; cursor: pointer; }
         textarea { font-size:16px; letter-spacing:1px; }
         #reset{ float:left; }
         #instructions{ max-width:600px; margin:40px auto; }
@@ -42,7 +43,8 @@
         #results .row{ display:table-row; }
         #results .row:nth-child(even) { background: #052013; }
         #results .cell{ display:table-cell; }
-        #results .cell.number, #results .cell.matches, #results .cell.likeness, #results .cell.dud { width: 50px; }
+        #results .cell.number { width: 30px; }
+        #results .cell.matches, #results .cell.likeness, #results .cell.dud { width: 50px; }
         #results .row.heading div{ border-bottom:1px solid mediumspringgreen; padding:0 0 10px 0; margin:0 0 10px 0; height:30px; }
         #results .row.heading div.r{ border-bottom:1px solid mediumspringgreen; }
         #results .row div{ line-height:35px; height:35px; vertical-align: middle; }
@@ -60,6 +62,8 @@
         #results .dud .checkbox { position: absolute; }
         #results .dud .checkmark { display: block; position: absolute; height: 22px; width: 22px; }
         #results .dud .checkbox-container .checkbox:checked ~ .checkmark::after { top: -7px; font-size: 16px; left: 4px; }
+        #results .letter { display: inline-block; box-sizing: border-box; padding: 0 1px; }
+        #results .letter.on { background: rgba(0, 250, 154, 0.15); cursor: pointer; }
         ol { border-top: 1px solid mediumspringgreen; border-bottom: 1px solid mediumspringgreen; padding-top: 10px; padding-bottom:10px; }
         li { padding-bottom: 5px; }
         p { font-size: 14px; }
@@ -89,6 +93,8 @@
         <ol>
             <li>Enter passwords from the Fallout terminal above. One word per line. Click Run.</li>
             <li>Each password will be compared to find similarities.</li>
+            <li>Mouseover a NUM row to highlight the original word in the input console.</li>
+            <li>Mouseover a word to view all likenesses with other words.</li>
             <li>Words with the highest "Matches" are good to use as a guess because they can eliminate the most combinations.</li>
             <li><p>Repeat:</p>
                 <ul>

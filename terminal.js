@@ -1,15 +1,11 @@
 // TODO:
-
-// move word hover event to the row number
-// add word hover event to highlight all similarities with other letters in other words
-// need to break word down into individual letters and wrap them in spans
-// use css classes to toggle highlighting
+// likeness input only allows 1 number to be typed, user has to re-focus input to put a second number
 
 const terminal = {
-    debug: true,
+    // debug: true,
     // sample: ['gates', 'spans', 'hence', 'masks', 'rates', 'boost', 'midst', 'harem', 'sword', 'sells', 'young', 'males', 'knock', 'wares', 'vault', 'black', 'tires', 'prove', 'wrote', 'large'],
     // sample: ['cards','empty','viral','shrug','scope','shady','blood','could','scant','weeks','lying','gains','erupt'],
-    sample: ['absorptiometric', 'abstractionisms', 'acknowledgement', 'balladmongering', 'believabilities', 'cardiopulmonary', 'carpetbaggeries', 'centrifugalized', 'dangerousnesses', 'deciduousnesses', 'ecocatastrophes', 'familiarization', 'labiovelarizing', 'marginalisation', 'marginalization', 'realterableness', 'saccharomycetes', 'salicylaldehyde', 'unadversenesses', 'versatilenesses'],
+    // sample: ['absorptiometric', 'abstractionisms', 'acknowledgement', 'balladmongering', 'believabilities', 'cardiopulmonary', 'carpetbaggeries', 'centrifugalized', 'dangerousnesses', 'deciduousnesses', 'ecocatastrophes', 'familiarization', 'labiovelarizing', 'marginalisation', 'marginalization', 'realterableness', 'saccharomycetes', 'salicylaldehyde', 'unadversenesses', 'versatilenesses'],
     matrix: {},
 
     ui: {
@@ -20,7 +16,8 @@ const terminal = {
         results: document.querySelector('#results'),
         resultsTable: document.querySelector('#results-table'),
         error: document.querySelector('#error'),
-        word: document.querySelectorAll('.word-entry'),
+        number: document.querySelectorAll('.number-entry'),
+        letter: document.querySelectorAll('.letter'),
         likeness: document.querySelectorAll('.likeness-entry'),
         dud: document.querySelectorAll('.dud-entry.checkbox'),
     },
@@ -72,9 +69,10 @@ const terminal = {
 
     // these elements are removed / added dynamically
     updateDomReferences() {
-        this.ui.likeness = document.querySelectorAll('.likeness');
-        this.ui.word = document.querySelectorAll('.word');
-        this.ui.dud = document.querySelectorAll('.dud.checkbox');
+        this.ui.number = document.querySelectorAll('.number-entry');
+        this.ui.letter = document.querySelectorAll('.letter');
+        this.ui.likeness = document.querySelectorAll('.likeness-entry');
+        this.ui.dud = document.querySelectorAll('.dud-entry.checkbox');
     },
 
     // bound to terminal context
@@ -99,7 +97,7 @@ const terminal = {
 
     // bound to terminal context
     // used for highlighting original word in ui.entry
-    wordMouseoverEventHandler: function (event) {
+    numberMouseoverEventHandler: function (event) {
         // prevent window from jumping back up to top of entry textarea if user has scrolled far enough down the page
         const {bottom: entryBottomPosition} = this.ui.entry.getBoundingClientRect();
         if (entryBottomPosition < 20) {
@@ -118,8 +116,30 @@ const terminal = {
         this.ui.entry.setSelectionRange(range.start, range.end);
     },
 
-    wordMouseoutEventHandler: function (event) {
+    numberMouseoutEventHandler: function (event) {
         this.ui.entry.blur();
+    },
+
+    letterMouseoverEventHandler: function (event) {
+        const wordIndex = parseInt(event.target.dataset.wordIndex, 10);
+        const similarLetterIndexes = this.matrix[wordIndex].similarities.map(({wordIndex, commonLetters}) => {
+            return {
+                wordIndex,
+                commonLetterIndexes: commonLetters.map(({letterIndex}) => letterIndex)
+            }
+        });
+
+        const querySelectorString = similarLetterIndexes
+            .map(({wordIndex, commonLetterIndexes}) => commonLetterIndexes
+            .map((letterIndex) => `[data-word-index='${wordIndex}'][data-letter-index='${letterIndex}']`))
+            .join(',');
+
+        const matchingLetters = document.querySelectorAll(querySelectorString);
+        matchingLetters.forEach((element) => element.classList.add('on'));
+    },
+
+    letterMouseoutEventHandler: function (event) {
+        document.querySelectorAll('.letter').forEach((element) => element.classList.remove('on'));
     },
 
     dudEventHandler: function (event) {
@@ -133,15 +153,25 @@ const terminal = {
     // The contents of the results table are dynamic and events need to be handled separately
     addResultsEvents() {
         this.ui.likeness.forEach((element) => element.addEventListener('input', this.likenessEventHandler.bind(this)));
-        this.ui.word.forEach((element) => element.addEventListener('mouseover', this.wordMouseoverEventHandler.bind(this)));
-        this.ui.word.forEach((element) => element.addEventListener('mouseout', this.wordMouseoutEventHandler.bind(this)));
+        
+        this.ui.number.forEach((element) => element.addEventListener('mouseover', this.numberMouseoverEventHandler.bind(this)));
+        this.ui.number.forEach((element) => element.addEventListener('mouseout', this.numberMouseoutEventHandler.bind(this)));
+        
+        this.ui.letter.forEach((element) => element.addEventListener('mouseover', this.letterMouseoverEventHandler.bind(this)));
+        this.ui.letter.forEach((element) => element.addEventListener('mouseout', this.letterMouseoutEventHandler.bind(this)));
+
         this.ui.dud.forEach((element) => element.addEventListener('click', this.dudEventHandler.bind(this)));
     },
 
     removeResultsEvents() {
         this.ui.likeness.forEach((element) => element.removeEventListener('input', this.likenessEventHandler.bind(this)));
-        this.ui.word.forEach((element) => element.removeEventListener('mouseover', this.wordMouseoverEventHandler.bind(this)));
-        this.ui.word.forEach((element) => element.removeEventListener('mouseout', this.wordMouseoutEventHandler.bind(this)));
+
+        this.ui.number.forEach((element) => element.removeEventListener('mouseover', this.numberMouseoverEventHandler.bind(this)));
+        this.ui.number.forEach((element) => element.removeEventListener('mouseout', this.numberMouseoutEventHandler.bind(this)));
+        
+        this.ui.letter.forEach((element) => element.removeEventListener('mouseover', this.letterMouseoverEventHandler.bind(this)));
+        this.ui.letter.forEach((element) => element.removeEventListener('mouseout', this.letterMouseoutEventHandler.bind(this)));
+
         this.ui.dud.forEach((element) => element.removeEventListener('click', this.dudEventHandler.bind(this)));
     },
 
@@ -171,6 +201,7 @@ const terminal = {
                     return {
                         letterIndex,
                         letter,
+                        highlightLetter: false,
                         matches: 0
                     };
                 }),
@@ -324,7 +355,7 @@ const terminal = {
         const hideEliminatedWords = this.ui.hide.checked;
         const html = `
             <div class="row heading">
-                <div class="cell number"></div>
+                <div class="cell number">NUM</div>
                 <div class="cell word">WORD</div>
                 <div class="cell matches">MATCHES</div>
                 <div class="cell likeness">LIKENESS</div>
@@ -333,7 +364,12 @@ const terminal = {
             ${
                 sortedMatrix.map((row, index) => {
                     const wordIndex = row.wordIndex;
-                    const word = row.word.toUpperCase();
+                    const letters = row.letters.map((letterObject) => {
+                        return {
+                            ...letterObject,
+                            letter: letterObject.letter.toUpperCase()
+                        }
+                    });
                     const totalMatches = row.totalMatches();
                     const likeness = row.likeness !== null ? row.likeness : '';
                     const display = row.display && !row.dud ? '' : 'off';
@@ -343,11 +379,13 @@ const terminal = {
                         return;
                     }
 
+                    // console.log('letters', letters);
+
                     return `
                         <div class="row ${display}">
-                            <div class="cell number number-entry">${index + 1}</div>
+                            <div class="cell number number-entry" data-word-index="${wordIndex}">${index + 1}</div>
                             <div class="cell word word-entry" data-word-index="${wordIndex}">
-                                ${word}
+                                ${letters.map(({letterIndex, letter, highlightLetter}) => `<span class="letter ${highlightLetter ? 'on' : ''}" data-word-index="${wordIndex}" data-letter-index="${letterIndex}">${letter}</span>`).join('')}
                             </div>
                             <div class="cell matches matches-entry">${totalMatches}</div>
                             <div class="cell likeness likeness-entry">
