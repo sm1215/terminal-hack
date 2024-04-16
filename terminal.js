@@ -1,19 +1,20 @@
 // TODO:
-
 // not sure if this still needs addressed? will figure it out through using
 // account for when subsequent guesses have lower likeness
 
 // Give a checkbox to remove a dud, and not count the likeness it has
-
 const terminal = {
     debug: false,
     // sample: ['caves', 'vents', 'pages', 'cried', 'actor', 'mines', 'dried', 'races', 'paper', 'vault', 'green', 'noted', 'helps', 'creed', 'plate', 'types', 'games', 'holes', 'pouch', 'plush'],
     // sample: ['gates', 'spans', 'hence', 'masks', 'rates', 'boost', 'midst', 'harem', 'sword', 'sells', 'young', 'males', 'knock', 'wares', 'vault', 'black', 'tires', 'prove', 'wrote', 'large'],
     // sample: [
-    //     'AAAB',
-    //     'AACC',
-    //     'AAAA'
+    //     'AAAA', // 3
+    //     'AAAB', // answer
+    //     'AAAB', // 4
+    //     'AACC', // 2
     // ],
+    // sample: ['ONCE', 'LOCK', 'SPIN', 'WAYS', 'GATE', 'RACE', 'SUNK', 'WHEN' ],
+    // answer: 'gate',
     matrix: {},
 
     ui: {
@@ -151,7 +152,18 @@ const terminal = {
     // returns a new matrix with entries that have an exact matching likeness
     filterMatrixBySameLikeness: function() {
         const data = [...this.matrix];
-        const wordsToCompare = data.filter(({likeness}) => likeness);
+        
+        // this just looks at all likenesses, but can result in a subsequent lower
+        // likeness entry making a previously crossed out word, become active again
+        // const wordsToCompare = data
+        //     .filter(({likeness}) => likeness);
+        //     // .sort((a, b) => a.likeness - b.likeness);
+        
+        // leaving highestLikeness filtering in place for now
+        const highestLikeness = Math.max(...data.map(({likeness}) => likeness));
+        const wordsToCompare = data
+            .filter(({likeness}) => likeness === highestLikeness)
+            .sort((a, b) => a.likeness - b.likeness);
 
         if (wordsToCompare.length < 1) {
             return data;
