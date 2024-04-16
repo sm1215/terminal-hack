@@ -1,6 +1,4 @@
 // TODO:
-// make a debug log where the user input is recorded and the state of the matrix is saved
-// and this can be copied with a button
 
 // move word hover event to the row number
 // add word hover event to highlight all similarities with other letters in other words
@@ -8,22 +6,23 @@
 // use css classes to toggle highlighting
 
 const terminal = {
-    // debug: true,
+    debug: true,
     // sample: ['gates', 'spans', 'hence', 'masks', 'rates', 'boost', 'midst', 'harem', 'sword', 'sells', 'young', 'males', 'knock', 'wares', 'vault', 'black', 'tires', 'prove', 'wrote', 'large'],
     // sample: ['cards','empty','viral','shrug','scope','shady','blood','could','scant','weeks','lying','gains','erupt'],
+    sample: ['absorptiometric', 'abstractionisms', 'acknowledgement', 'balladmongering', 'believabilities', 'cardiopulmonary', 'carpetbaggeries', 'centrifugalized', 'dangerousnesses', 'deciduousnesses', 'ecocatastrophes', 'familiarization', 'labiovelarizing', 'marginalisation', 'marginalization', 'realterableness', 'saccharomycetes', 'salicylaldehyde', 'unadversenesses', 'versatilenesses'],
     matrix: {},
 
     ui: {
         entry: document.querySelector('#entry'),
         reset: document.querySelector('#reset'),
         run: document.querySelector('#run'),
-        word: document.querySelectorAll('.word'),
-        likeness: document.querySelectorAll('.likeness'),
-        results: document.querySelector('#results'),
         hide: document.querySelector('#hide'),
-        dud: document.querySelectorAll('.dud.checkbox'),
+        results: document.querySelector('#results'),
         resultsTable: document.querySelector('#results-table'),
-        error: document.querySelector('#error')
+        error: document.querySelector('#error'),
+        word: document.querySelectorAll('.word-entry'),
+        likeness: document.querySelectorAll('.likeness-entry'),
+        dud: document.querySelectorAll('.dud-entry.checkbox'),
     },
 
     runDebug: function() {
@@ -203,22 +202,16 @@ const terminal = {
     filterMatrixBySameLikeness: function() {
         const data = [...this.matrix];
         
-        const wordsWithLikess = data
+        const wordsWithLikeness = data
             .filter(({likeness}) => likeness);
-        
-        // leaving highestLikeness filtering in place for now
-        // const highestLikeness = Math.max(...data.map(({likeness}) => likeness));
-        // const wordsToCompare = data
-        //     .filter(({likeness}) => likeness === highestLikeness)
-        //     .sort((a, b) => a.likeness - b.likeness);
 
-        if (wordsWithLikess.length < 1) {
+        if (wordsWithLikeness.length < 1) {
             return data;
         }
 
         // find other words that have a similar likeness
         // this won't include the word we are comparing against
-        const matchingWordIndexes = wordsWithLikess
+        const matchingWordIndexes = wordsWithLikeness
             .flatMap(({likeness, similarities}) => similarities
                 .filter(({commonLetters}) => commonLetters.length === likeness)
                 .map(({wordIndex}) => wordIndex)
@@ -228,10 +221,10 @@ const terminal = {
             .filter(({wordIndex}) => 
                 matchingWordIndexes.includes(wordIndex)
                 // don't include words we're already comparing against, it introduces duplicates
-                && !wordsWithLikess.map(({wordIndex}) => wordIndex).includes(wordIndex)
+                && !wordsWithLikeness.map(({wordIndex}) => wordIndex).includes(wordIndex)
             );
 
-        const combined = [...wordsWithLikess, ...matchingWords].map(({wordIndex}) => wordIndex);
+        const combined = [...wordsWithLikeness, ...matchingWords].map(({wordIndex}) => wordIndex);
 
         data.forEach((entry) => {
             if (combined.includes(entry.wordIndex)) {
@@ -332,9 +325,9 @@ const terminal = {
         const html = `
             <div class="row heading">
                 <div class="cell number"></div>
-                <div class="cell">WORD</div>
-                <div class="cell">MATCHES</div>
-                <div class="cell">LIKENESS</div>
+                <div class="cell word">WORD</div>
+                <div class="cell matches">MATCHES</div>
+                <div class="cell likeness">LIKENESS</div>
                 <div class="cell dud r">DUD</div>
             </div>
             ${
@@ -352,13 +345,15 @@ const terminal = {
 
                     return `
                         <div class="row ${display}">
-                            <div class="cell number">${index + 1}</div>
-                            <div class="cell word" data-word-index="${wordIndex}">${word}</div>
-                            <div class="cell matches">${totalMatches}</div>
-                            <div class="cell">
+                            <div class="cell number number-entry">${index + 1}</div>
+                            <div class="cell word word-entry" data-word-index="${wordIndex}">
+                                ${word}
+                            </div>
+                            <div class="cell matches matches-entry">${totalMatches}</div>
+                            <div class="cell likeness likeness-entry">
                                 <input type="text" name="likeness" class="likeness text-input" id="${wordIndex}" value="${likeness}">
                             </div>
-                            <div class="cell dud r">
+                            <div class="cell dud dud-entry r">
                                 <label class="dud checkbox-container">
                                     <input class="dud checkbox" type="checkbox" data-word-index="${wordIndex}" ${dudChecked}>
                                     <span class="checkmark"></span>

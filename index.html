@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Terminal</title>
     <style>
-        body{ font-family: 'lucida console', monaco, monospace; color:mediumspringgreen; background:#052013; }
+        body{ font-family: 'lucida console', monaco, monospace; color:mediumspringgreen; background:#052013; background: #04170e; }
         ::selection{ background:#1f3a2b; }
         ::-moz-selection{ background:#1f3a2b; }
         #monitor{ width:600px; height:450px; margin:20px auto; }
@@ -18,15 +18,15 @@
         .text-input:focus { color:#1f3a2b; background:mediumspringgreen; }
         textarea::selection { color:#1f3a2b; background: mediumspringgreen; }
         input:focus::selection { color:mediumspringgreen; background: #1f3a2b; }
-        .word:hover { background: mediumspringgreen; color: #1f3a2b; cursor: pointer; }
+        .word-entry:hover { background: mediumspringgreen; color: #1f3a2b; cursor: pointer; }
         textarea { font-size:16px; letter-spacing:1px; }
         #reset{ float:left; }
         #instructions{ max-width:600px; margin:40px auto; }
         #instructions li{ margin:0 0 5px 0; }
         .button:hover{ background:mediumspringgreen; color:#052013; }
-        #hide-form { width: 100%; text-align:right; font-size: 12px; }
+        #hide-container { text-align:right; font-size: 12px; }
         #hide { margin-right: 0; }
-        .checkbox-container { display: block; position: relative; padding-left: 35px; margin-bottom: 12px; cursor: pointer; font-size: 12px; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+        .checkbox-container { display: inline-block; position: relative; cursor: pointer; font-size: 12px; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
         .checkbox-container .checkbox { opacity: 0; cursor: pointer; height: 12px; width: 12px; }
         .checkmark { position: absolute; top: 1px; right: 0; height: 15px; width: 15px; background: transparent; border: 1px solid mediumspringgreen; box-sizing: border-box; }
         .checkbox-container:hover .checkbox ~ .checkmark { background: mediumspringgreen; }
@@ -40,20 +40,21 @@
         #results div::selection { color:#1f3a2b; background: mediumspringgreen; }
         #results-table { display: table; width: 100%; margin:10px 0; padding:10px 0; border:1px solid mediumspringgreen; }
         #results .row{ display:table-row; }
+        #results .row:nth-child(even) { background: #052013; }
         #results .cell{ display:table-cell; }
-        #results .cell.number, #results .cell.dud { width: 50px; }
+        #results .cell.number, #results .cell.matches, #results .cell.likeness, #results .cell.dud { width: 50px; }
         #results .row.heading div{ border-bottom:1px solid mediumspringgreen; padding:0 0 10px 0; margin:0 0 10px 0; height:30px; }
         #results .row.heading div.r{ border-bottom:1px solid mediumspringgreen; }
         #results .row div{ line-height:35px; height:35px; vertical-align: middle; }
         #results .row div{ width:150px; border-right:1px solid mediumspringgreen; box-sizing:border-box; text-align:center; }
         #results .row div.r{ border:none; }
-        #results .row div .text-input{ width:90%; margin:0 auto; text-align:center; line-height:22px; height:22px; }
+        #results .row div .text-input{ width:40%; margin:0 auto; text-align:center; line-height:22px; height:22px; }
         #results .row div .button{ width:90%; float:none; margin:0 auto; height:auto; line-height:10px; }
         #results .row.on{ background:mediumspringgreen; color:#052013; }
         #results .row.on .button{ border:1px solid #052013; }
         #results .row.on .button:hover{ background:#052013; color:mediumspringgreen; border:1px solid mediumspringgreen; }
-        #results .row.off {background:#020f09; color: rgb(0, 126, 78); }
-        #results .row.off .word{ text-decoration: line-through; }
+        #results .row.off {background:#010805; color: rgb(0, 126, 78); }
+        #results .row.off .word-entry{ text-decoration: line-through; }
         #results .row.off .text-input { border:1px solid #052013; }
         #results .dud .checkbox-container { height: 22px; width: 22px; padding: 0; margin: 0; position: relative; top: -1px; margin: 0 auto; }
         #results .dud .checkbox { position: absolute; }
@@ -74,13 +75,13 @@
         <p>Error: All entered words must be same length</p>
     </div>
     <div id="results">
-        <form id="hide-form">
+        <div id="hide-container">
             <label class="checkbox-container">
                 Hide Eliminated Words
                 <input id="hide" class="checkbox" type="checkbox">
                 <span class="checkmark"></span>
             </label>
-        </form>
+        </div>
         <div id="results-table"></div>
     </div>
     <div id="instructions">
