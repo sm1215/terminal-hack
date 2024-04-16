@@ -26,6 +26,7 @@
         #results.on { display: table; }
         #results .row{ display:table-row; }
         #results .cell{ display:table-cell; }
+        #results .cell.number{ width: 50px; }
         #results .row.heading div{ border-bottom:1px solid mediumspringgreen; padding:0 0 10px 0; margin:0 0 10px 0; height:30px; }
         #results .row.heading div.r{ border-bottom:1px solid mediumspringgreen; }
         #results .row div{ line-height:35px; height:35px; vertical-align: middle; }
@@ -36,7 +37,8 @@
         #results .row.on{ background:mediumspringgreen; color:#052013; }
         #results .row.on .button{ border:1px solid #052013; }
         #results .row.on .button:hover{ background:#052013; color:mediumspringgreen; border:1px solid mediumspringgreen; }
-        #results .row.off {text-decoration: line-through; background:#020f09; color: rgb(0, 126, 78); }
+        #results .row.off {background:#020f09; color: rgb(0, 126, 78); }
+        #results .row.off .word{ text-decoration: line-through; }
         #results .row.off .text-input { border:1px solid #052013; }
         ol { border-top: 1px solid mediumspringgreen; border-bottom: 1px solid mediumspringgreen; padding-top: 10px; padding-bottom:10px; }
         li { padding-bottom: 5px; }

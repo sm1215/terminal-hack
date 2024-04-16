@@ -1,19 +1,19 @@
 // TODO:
 
+// not sure if this still needs addressed? will figure it out through using
 // account for when subsequent guesses have lower likeness
-
-// account for when a user enters 0, eliminate all words that share any likeness with that word
-// SNARE should eliminate STATE, SHAVE, SENSE, SIEGE, etc
-
-// Use more than just the highest likeness
-// DOORS & LEARN could each have a likeness of 1 but both share a different 
-// letter in common with the password
 
 // Give a checkbox to remove a dud, and not count the likeness it has
 
 const terminal = {
     debug: false,
-    sample: ['caves', 'vents', 'pages', 'cried', 'actor', 'mines', 'dried', 'races', 'paper', 'vault', 'green', 'noted', 'helps', 'creed', 'plate', 'types', 'games', 'holes', 'pouch', 'plush'],
+    // sample: ['caves', 'vents', 'pages', 'cried', 'actor', 'mines', 'dried', 'races', 'paper', 'vault', 'green', 'noted', 'helps', 'creed', 'plate', 'types', 'games', 'holes', 'pouch', 'plush'],
+    // sample: ['gates', 'spans', 'hence', 'masks', 'rates', 'boost', 'midst', 'harem', 'sword', 'sells', 'young', 'males', 'knock', 'wares', 'vault', 'black', 'tires', 'prove', 'wrote', 'large'],
+    // sample: [
+    //     'AAAB',
+    //     'AACC',
+    //     'AAAA'
+    // ],
     matrix: {},
 
     ui: {
@@ -33,7 +33,7 @@ const terminal = {
         console.log('terminal', terminal);
         console.log('this.matrix', this.matrix);
 
-        // this.ui.likeness[0].value = 1;
+        // this.ui.likeness[0].value = 2;
         // const likenessEvent = new Event('input');
         // this.ui.likeness[0].dispatchEvent(likenessEvent);
     },
@@ -68,21 +68,21 @@ const terminal = {
 
     // bound to terminal context
     likenessEventHandler: function (event) {
-        let likeness = parseInt(event.target.value, 10);
-        const userSuppliedZero = likeness === 0;
+        const likeness = parseInt(event.target.value, 10);
 
         // only allow numeric values
         if (isNaN(likeness)) {
             event.target.value = '';
-            likeness = 0;
         }
 
         const targetWordIndex = parseInt(event.target.id, 10);
         const [entry] = terminal.matrix.filter(({wordIndex}) => wordIndex === targetWordIndex);
-        entry.likeness = likeness;
-        entry.userSuppliedZero = userSuppliedZero;
+        entry.likeness = isNaN(likeness) ? null : likeness;
 
-        this.filterMatrixByLikeness();
+        this.resetDisplay();
+        this.filterMatrixBySameLikeness();
+        this.filterWordWithLikeness();
+        this.filterZeroLikeness();
         this.updateUi();
     },
 
@@ -129,8 +129,7 @@ const terminal = {
                         .map(({matches}) => matches)
                         .reduce((previous, current) => { return previous += current; }, 0);
                 },
-                likeness: 0,
-                userSuppliedZero: false,
+                likeness: null,
                 similarities: []
             };
         });
@@ -141,11 +140,18 @@ const terminal = {
         return [...data].sort((a, b) => b.totalMatches() - a.totalMatches());
     },
 
+    // reset the display so each filtering pass can start fresh
+    // useful when the user manually deletes last remaining likeness entry
+    resetDisplay: function() {
+        this.matrix.forEach((entry) => {
+            entry.display = true
+        });
+    },
+
     // returns a new matrix with entries that have an exact matching likeness
-    filterMatrixByLikeness: function() {
+    filterMatrixBySameLikeness: function() {
         const data = [...this.matrix];
-        const highestLikeness = Math.max(...data.map(({likeness}) => likeness))
-        const wordsToCompare = data.filter(({likeness}) => likeness === highestLikeness);
+        const wordsToCompare = data.filter(({likeness}) => likeness);
 
         if (wordsToCompare.length < 1) {
             return data;
@@ -160,17 +166,56 @@ const terminal = {
         );
 
         const matchingWords = data
-            .filter(({wordIndex, userSuppliedZero}) => 
+            .filter(({wordIndex}) => 
                 matchingWordIndexes.includes(wordIndex)
                 // don't include words we're already comparing against, it introduces duplicates
                 && !wordsToCompare.map(({wordIndex}) => wordIndex).includes(wordIndex)
-                && !userSuppliedZero
             );
 
         const combined = [...wordsToCompare, ...matchingWords].map(({wordIndex}) => wordIndex);
 
         data.forEach((entry) => {
             entry.display = combined.includes(entry.wordIndex);
+        });
+    },
+
+    // any word that has a likeness can't be the password
+    // otherwise we wouldn't still be playing
+    // this should never be a toggle, only a way to turn an entry off
+    filterWordWithLikeness() {
+        this.matrix.forEach((entry) => {
+            if (!isNaN(parseInt(entry.likeness))) {
+                entry.display = false;
+            }
+        });
+    },
+
+    // filter out any similarities to a word that has a 0 likeness
+    // this should always run last
+    filterZeroLikeness() {
+        const data = this.matrix;
+
+        const wordsWithZeroLikeness = data.filter(({likeness}) => likeness === 0);
+
+        if (wordsWithZeroLikeness.length < 1) {
+            return;
+        }
+
+        // for all the words marked with 0 likeness,
+        // find all the words that share 
+        // a similarity with them
+        const [matchingWordIndexes] = wordsWithZeroLikeness.map(
+            ({similarities}) => similarities.map(({wordIndex}) => wordIndex)
+        );
+
+        // include the original word because it also needs to be excluded from the final results
+        const combined = [
+            ...wordsWithZeroLikeness.map(({wordIndex}) => wordIndex),
+            ...matchingWordIndexes
+        ];
+
+        data.forEach((entry) => {
+            entry.display = !combined.includes(entry.wordIndex);
         });
     },
 
@@ -221,24 +266,26 @@ const terminal = {
         const sortedMatrix = this.sortData(data);
         const html = `
             <div class="row heading">
+                <div class="cell number"></div>
                 <div class="cell">WORD</div>
                 <div class="cell">MATCHES</div>
                 <div class="cell r">LIKENESS</div>
             </div>
             ${
-                sortedMatrix.map((row) => {
+                sortedMatrix.map((row, index) => {
                     const wordIndex = row.wordIndex;
                     const word = row.word.toUpperCase();
                     const totalMatches = row.totalMatches();
-                    const likeness = row.likeness || row.userSuppliedZero ? row.likeness : '';
-                    const display = row.display && !row.userSuppliedZero ? '' : 'off';
-                    const disabled = display === 'off' && !row.userSuppliedZero;
+                    const likeness = row.likeness !== null ? row.likeness : '';
+                    const display = row.display ? '' : 'off';
+
                     return `
                         <div class="row ${display}">
+                            <div class="cell number">${index + 1}</div>
                             <div class="cell word">${word}</div>
                             <div class="cell matches">${totalMatches}</div>
                             <div class="cell r">
-                                <input type="text" name="likeness" class="likeness text-input" id="${wordIndex}" value="${likeness}" ${disabled ? 'disabled' : ''}>
+                                <input type="text" name="likeness" class="likeness text-input" id="${wordIndex}" value="${likeness}">
                             </div>
                         </div>
                     `;
