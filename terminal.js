@@ -1,11 +1,12 @@
 // TODO:
 // likeness input only allows 1 number to be typed, user has to re-focus input to put a second number
 const terminal = {
-    debug: true,
+    // debug: true,
     // sample: ['gates', 'spans', 'hence', 'masks', 'rates', 'boost', 'midst', 'harem', 'sword', 'sells', 'young', 'males', 'knock', 'wares', 'vault', 'black', 'tires', 'prove', 'wrote', 'large'],
     // sample: ['cards','empty','viral','shrug','scope','shady','blood','could','scant','weeks','lying','gains','erupt'],
     // sample: ['absorptiometric', 'abstractionisms', 'acknowledgement', 'balladmongering', 'believabilities', 'cardiopulmonary', 'carpetbaggeries', 'centrifugalized', 'dangerousnesses', 'deciduousnesses', 'ecocatastrophes', 'familiarization', 'labiovelarizing', 'marginalisation', 'marginalization', 'realterableness', 'saccharomycetes', 'salicylaldehyde', 'unadversenesses', 'versatilenesses'],
-    sample: ['AMONG', 'ABOVE', 'STEVE', 'CLOCK', 'FLAME', 'ITALY', 'FRANK', 'ELITE'],
+    // sample: ['AMONG', 'ABOVE', 'STEVE', 'CLOCK', 'FLAME', 'ITALY', 'FRANK', 'ELITE'],
+    // sample: ['PERSONNEL', 'PENDELTON', 'PREDATORS', 'BARNSTORM', 'QUALITIES', 'TRAVELING', 'PACIFISTS', 'PIERCINGS'],
     matrix: {},
 
     ui: {
@@ -20,7 +21,7 @@ const terminal = {
         word: document.querySelectorAll('.word-entry'),
         letter: document.querySelectorAll('.letter'),
         likeness: document.querySelectorAll('.likeness-entry'),
-        dud: document.querySelectorAll('.dud-entry.checkbox'),
+        dud: document.querySelectorAll('.dud-entry .checkbox'),
     },
 
     runDebug: function() {
@@ -73,7 +74,7 @@ const terminal = {
         this.ui.number = document.querySelectorAll('.number-entry');
         this.ui.word = document.querySelectorAll('.word-entry');
         this.ui.likeness = document.querySelectorAll('.likeness-entry');
-        this.ui.dud = document.querySelectorAll('.dud-entry.checkbox');
+        this.ui.dud = document.querySelectorAll('.dud-entry .checkbox');
     },
 
     // bound to terminal context
@@ -148,6 +149,8 @@ const terminal = {
         const wordIndex = parseInt(event.target.dataset.wordIndex, 10);
         const word = this.matrix[wordIndex];
         word.dud = checked;
+
+        console.log('word', word);
         this.updateUi();
     },
 
@@ -241,17 +244,19 @@ const terminal = {
             return data;
         }
 
-        // find other words that have a similar likeness
-        // this won't include the word we are comparing against
-        const matchingWordIndexes = wordsWithLikeness
-            .flatMap(({likeness, similarities}) => similarities
-                .filter(({commonLetters}) => commonLetters.length === likeness)
-                .map(({wordIndex}) => wordIndex)
-        );
+        // returns 2D array
+        // for a word to still be valid, it needs to appear in every array
+        // this won't include the words we are comparing against
+        const matchingCommonLetters = wordsWithLikeness
+            .map(({likeness, similarities}) => similarities
+            .filter(({commonLetters}) => commonLetters.length === likeness))
+            .map((similarities) => similarities.map(({wordIndex}) => wordIndex));
+        
+        const appearsInAll = _.intersection(...matchingCommonLetters);
     
         const matchingWords = data
             .filter(({wordIndex}) => 
-                matchingWordIndexes.includes(wordIndex)
+                appearsInAll.includes(wordIndex)
                 // don't include words we're already comparing against, it introduces duplicates
                 && !wordsWithLikeness.map(({wordIndex}) => wordIndex).includes(wordIndex)
             );
@@ -259,7 +264,7 @@ const terminal = {
         const combined = [...wordsWithLikeness, ...matchingWords].map(({wordIndex}) => wordIndex);
 
         data.forEach((entry) => {
-            if (combined.includes(entry.wordIndex)) {
+            if (!combined.includes(entry.wordIndex)) {
                 entry.display = false;
             }
         });
@@ -280,7 +285,6 @@ const terminal = {
     // this should always run last
     filterZeroLikeness() {
         const data = this.matrix;
-
         const wordsWithZeroLikeness = data.filter(({likeness}) => likeness === 0);
 
         if (wordsWithZeroLikeness.length < 1) {
@@ -375,6 +379,12 @@ const terminal = {
                     const likeness = row.likeness !== null ? row.likeness : '';
                     const display = row.display && !row.dud ? '' : 'off';
                     const dudChecked = row.dud ? 'checked' : '';
+
+                    if (row.word === 'ABOVE') {
+                    console.log('display', display);
+                    console.log('row.display', row.display);
+                    console.log('!row.dud', !row.dud);
+                    }
 
                     if (hideEliminatedWords && display === 'off') {
                         return;
