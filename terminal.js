@@ -17,6 +17,7 @@ const terminal = {
         resultsTable: document.querySelector('#results-table'),
         error: document.querySelector('#error'),
         number: document.querySelectorAll('.number-entry'),
+        word: document.querySelectorAll('.word-entry'),
         letter: document.querySelectorAll('.letter'),
         likeness: document.querySelectorAll('.likeness-entry'),
         dud: document.querySelectorAll('.dud-entry.checkbox'),
@@ -70,7 +71,7 @@ const terminal = {
     // these elements are removed / added dynamically
     updateDomReferences() {
         this.ui.number = document.querySelectorAll('.number-entry');
-        this.ui.letter = document.querySelectorAll('.letter');
+        this.ui.word = document.querySelectorAll('.word-entry');
         this.ui.likeness = document.querySelectorAll('.likeness-entry');
         this.ui.dud = document.querySelectorAll('.dud-entry.checkbox');
     },
@@ -120,7 +121,7 @@ const terminal = {
         this.ui.entry.blur();
     },
 
-    letterMouseoverEventHandler: function (event) {
+    wordMouseoverEventHandler: function (event) {
         const wordIndex = parseInt(event.target.dataset.wordIndex, 10);
         const similarLetterIndexes = this.matrix[wordIndex].similarities.map(({wordIndex, commonLetters}) => {
             return {
@@ -138,7 +139,7 @@ const terminal = {
         matchingLetters.forEach((element) => element.classList.add('on'));
     },
 
-    letterMouseoutEventHandler: function (event) {
+    wordMouseoutEventHandler: function (event) {
         document.querySelectorAll('.letter').forEach((element) => element.classList.remove('on'));
     },
 
@@ -157,8 +158,8 @@ const terminal = {
         this.ui.number.forEach((element) => element.addEventListener('mouseover', this.numberMouseoverEventHandler.bind(this)));
         this.ui.number.forEach((element) => element.addEventListener('mouseout', this.numberMouseoutEventHandler.bind(this)));
         
-        this.ui.letter.forEach((element) => element.addEventListener('mouseover', this.letterMouseoverEventHandler.bind(this)));
-        this.ui.letter.forEach((element) => element.addEventListener('mouseout', this.letterMouseoutEventHandler.bind(this)));
+        this.ui.word.forEach((element) => element.addEventListener('mouseover', this.wordMouseoverEventHandler.bind(this)));
+        this.ui.word.forEach((element) => element.addEventListener('mouseout', this.wordMouseoutEventHandler.bind(this)));
 
         this.ui.dud.forEach((element) => element.addEventListener('click', this.dudEventHandler.bind(this)));
     },
@@ -169,8 +170,8 @@ const terminal = {
         this.ui.number.forEach((element) => element.removeEventListener('mouseover', this.numberMouseoverEventHandler.bind(this)));
         this.ui.number.forEach((element) => element.removeEventListener('mouseout', this.numberMouseoutEventHandler.bind(this)));
         
-        this.ui.letter.forEach((element) => element.removeEventListener('mouseover', this.letterMouseoverEventHandler.bind(this)));
-        this.ui.letter.forEach((element) => element.removeEventListener('mouseout', this.letterMouseoutEventHandler.bind(this)));
+        this.ui.word.forEach((element) => element.removeEventListener('mouseover', this.wordMouseoverEventHandler.bind(this)));
+        this.ui.word.forEach((element) => element.removeEventListener('mouseout', this.wordMouseoutEventHandler.bind(this)));
 
         this.ui.dud.forEach((element) => element.removeEventListener('click', this.dudEventHandler.bind(this)));
     },
