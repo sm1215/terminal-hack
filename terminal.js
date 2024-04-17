@@ -1,11 +1,11 @@
 // TODO:
 // likeness input only allows 1 number to be typed, user has to re-focus input to put a second number
-
 const terminal = {
-    // debug: true,
+    debug: true,
     // sample: ['gates', 'spans', 'hence', 'masks', 'rates', 'boost', 'midst', 'harem', 'sword', 'sells', 'young', 'males', 'knock', 'wares', 'vault', 'black', 'tires', 'prove', 'wrote', 'large'],
     // sample: ['cards','empty','viral','shrug','scope','shady','blood','could','scant','weeks','lying','gains','erupt'],
     // sample: ['absorptiometric', 'abstractionisms', 'acknowledgement', 'balladmongering', 'believabilities', 'cardiopulmonary', 'carpetbaggeries', 'centrifugalized', 'dangerousnesses', 'deciduousnesses', 'ecocatastrophes', 'familiarization', 'labiovelarizing', 'marginalisation', 'marginalization', 'realterableness', 'saccharomycetes', 'salicylaldehyde', 'unadversenesses', 'versatilenesses'],
+    sample: ['AMONG', 'ABOVE', 'STEVE', 'CLOCK', 'FLAME', 'ITALY', 'FRANK', 'ELITE'],
     matrix: {},
 
     ui: {
@@ -39,7 +39,7 @@ const terminal = {
     addMainEvents: function () {
         this.ui.reset.addEventListener('click', () => {
             this.ui.entry.value = '';
-            this.ui.results.innerHTML = '';
+            this.ui.resultsTable.innerHTML = '';
             this.ui.results.classList.remove('on');
             this.removeResultsEvents();
         });
@@ -378,8 +378,6 @@ const terminal = {
                     if (hideEliminatedWords && display === 'off') {
                         return;
                     }
-
-                    // console.log('letters', letters);
 
                     return `
                         <div class="row ${display}">
