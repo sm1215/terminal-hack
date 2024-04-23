@@ -1,5 +1,7 @@
 // TODO:
 // likeness input only allows 1 number to be typed, user has to re-focus input to put a second number
+
+// clean whitespace when doing the letter check
 const terminal = {
     // debug: true,
     // sample: ['gates', 'spans', 'hence', 'masks', 'rates', 'boost', 'midst', 'harem', 'sword', 'sells', 'young', 'males', 'knock', 'wares', 'vault', 'black', 'tires', 'prove', 'wrote', 'large'],
@@ -182,6 +184,7 @@ const terminal = {
     validateInput: function() {
         const input = this.ui.entry.value
             .split('\n')
+            .map((word) => word.trim())
             .filter((value) => value);
 
         const allWordsSameLength = input.every((value) => value.length === input[0].length);
@@ -195,7 +198,11 @@ const terminal = {
     },
 
     initMatrix: function () {
-        const data = this.ui.entry.value.split('\n').filter((value) => value);
+        const data = this.ui.entry.value
+            .split('\n')
+            .map((word) => word.trim())
+            .filter((value) => value);
+
         return data.map((word, wordIndex) => {
             return {
                 wordIndex,
