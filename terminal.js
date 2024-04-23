@@ -1,7 +1,8 @@
 // TODO:
 // likeness input only allows 1 number to be typed, user has to re-focus input to put a second number
 
-// clean whitespace when doing the letter check
+// replace lodash _.intersection dependency
+// remove jquery, it's not being used
 const terminal = {
     // debug: true,
     // sample: ['gates', 'spans', 'hence', 'masks', 'rates', 'boost', 'midst', 'harem', 'sword', 'sells', 'young', 'males', 'knock', 'wares', 'vault', 'black', 'tires', 'prove', 'wrote', 'large'],
@@ -152,7 +153,6 @@ const terminal = {
         const word = this.matrix[wordIndex];
         word.dud = checked;
 
-        console.log('word', word);
         this.updateUi();
     },
 
@@ -240,7 +240,7 @@ const terminal = {
         });
     },
 
-    // returns a new matrix with entries that match the same likeness
+    // filters matrix by entries that match the same likeness
     filterMatrixBySameLikeness: function() {
         const data = [...this.matrix];
         
@@ -256,8 +256,8 @@ const terminal = {
         // this won't include the words we are comparing against
         const matchingCommonLetters = wordsWithLikeness
             .map(({likeness, similarities}) => similarities
-            .filter(({commonLetters}) => commonLetters.length === likeness))
-            .map((similarities) => similarities.map(({wordIndex}) => wordIndex));
+                .filter(({commonLetters}) => commonLetters.length === likeness))
+                .map((similarities) => similarities.map(({wordIndex}) => wordIndex));
         
         const appearsInAll = _.intersection(...matchingCommonLetters);
     
@@ -289,7 +289,6 @@ const terminal = {
     },
 
     // filter out any similarities to a word that has a 0 likeness
-    // this should always run last
     filterZeroLikeness() {
         const data = this.matrix;
         const wordsWithZeroLikeness = data.filter(({likeness}) => likeness === 0);
@@ -386,12 +385,6 @@ const terminal = {
                     const likeness = row.likeness !== null ? row.likeness : '';
                     const display = row.display && !row.dud ? '' : 'off';
                     const dudChecked = row.dud ? 'checked' : '';
-
-                    if (row.word === 'ABOVE') {
-                    console.log('display', display);
-                    console.log('row.display', row.display);
-                    console.log('!row.dud', !row.dud);
-                    }
 
                     if (hideEliminatedWords && display === 'off') {
                         return;
